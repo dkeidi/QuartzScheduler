@@ -2,12 +2,10 @@ package com.quartz.timerservice;
 
 import com.quartz.info.TriggerInfo;
 import com.quartz.util.TimerUtils;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class SchedulerService {
-    private static final Logger LOG = LoggerFactory.getLogger(SchedulerService.class);
+    private static final Logger LOG = LogManager.getLogger(SchedulerService.class);
     private final Scheduler scheduler;
 
     @Autowired
@@ -31,7 +29,7 @@ public class SchedulerService {
         final CronTrigger trigger = TimerUtils.buildTrigger(jobClass, info);
 
         try {
-            LOG.info("in SchedulerService");
+            LOG.info("{} job scheduled.", info.getCallbackData());
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             LOG.error(e.getMessage(), e);
@@ -88,35 +86,6 @@ public class SchedulerService {
 
             scheduler.addJob(jobDetail, true, true);
         } catch (final SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    public Boolean deleteTimer(final String timerId) {
-        try {
-            return scheduler.deleteJob(new JobKey(timerId));
-        } catch (SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-            return false;
-        }
-    }
-
-    @PostConstruct
-    public void init() {
-        try {
-            scheduler.start();
-            // register listener
-            scheduler.getListenerManager().addTriggerListener(new SimpleTriggerListener(this));
-        } catch (SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        try {
-            scheduler.shutdown();
-        } catch (SchedulerException e) {
             LOG.error(e.getMessage(), e);
         }
     }
