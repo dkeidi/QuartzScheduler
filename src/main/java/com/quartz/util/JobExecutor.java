@@ -8,10 +8,8 @@ import java.util.concurrent.Executors;
 
 public class JobExecutor {
     public static void executeJob(String jobName, String scriptLocation, Logger LOG) throws IOException, InterruptedException {
-        Properties prop = new Properties();
-
         LOG.info("Starting job with command: {}", jobName);
-        LOG.info(scriptLocation);
+        LOG.info("Script Location: {}", scriptLocation);
 
         Process process = Runtime.getRuntime().exec("cmd /c " + scriptLocation);
 
