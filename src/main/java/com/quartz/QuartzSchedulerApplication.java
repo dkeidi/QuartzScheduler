@@ -3,6 +3,7 @@ package com.quartz;
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.HelloWorldJob;
 import com.quartz.jobs.CopyJob;
+import com.quartz.jobs.MoveJob;
 import com.quartz.timerservice.SchedulerService;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
@@ -11,9 +12,14 @@ import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.builder.api.*;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
+import org.quartz.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 @SpringBootApplication
 public class QuartzSchedulerApplication {
@@ -30,60 +36,45 @@ public class QuartzSchedulerApplication {
 //    public static void main(String[] args) {
 //        SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class).scheduleJobs();
 //    }
-//
+
 //    public void scheduleJobs() {
 //        try (InputStream input = QuartzSchedulerApplication.class.getClassLoader().getResourceAsStream("job.properties")) {
-//
 //            Properties prop = new Properties();
 //            prop.load(input);
 //
+//            LOG.debug(prop);
 //            int jobCount = 0;
 //
-//            // Iterate over job configurations
-//            while (true) {
-//                String cronKey = "job." + jobCount + ".cron";
-//                String classKey = "job." + jobCount + ".class";
+//            for (String jobName : prop.stringPropertyNames()) {
+//                if (jobName.endsWith(".cron")) {
+//                    String className = jobName.substring(0, jobName.length() - 5); // Remove the ".cron" suffix
+//                    String cronExp = prop.getProperty(jobName);
+//                    String classKey = "job." + className + ".class";
+//                    Class<? extends Job> jobClass = (Class<? extends Job>) Class.forName(classKey);
 //
-//                String cronExp = prop.getProperty(cronKey);
-//                String className = prop.getProperty(classKey);
-//
-//                if (cronExp == null || className == null) {
-//                    break; // No more jobs defined
+//                    if (cronExp != null && jobClass != null) {
+//                        scheduleJob(jobClass, cronExp);
+//                        jobCount++;
+//                    }
 //                }
-//
-//                // Schedule job based on properties
-//                scheduleJob(className, cronExp);
-//
-//                jobCount++;
 //            }
 //
 //            System.out.println("Scheduled " + jobCount + " jobs.");
 //
-//        } catch (IOException ex) {
+//        } catch (IOException | ClassNotFoundException ex) {
 //            ex.printStackTrace();
 //        }
 //    }
 //
-//    private void scheduleJob(String className, String cronExp) {
+//    private void scheduleJob(Class<? extends Job> jobClass, String cronExp) {
 //        TriggerInfo info = new TriggerInfo();
 //        info.setCronExp(cronExp);
-//        info.setCallbackData(className);
+//        info.setCallbackData(jobClass.getSimpleName());
 //
-//        // Replace this with your actual scheduler logic
-//        switch (className) {
-//            case "HelloWorldJob":
-//                scheduler.schedule(HelloWorldJob.class, info);
-//                break;
-//            case "CopyJob":
-//                scheduler.schedule(CopyJob.class, info);
-//                break;
-//            case "MoveJob":
-//                scheduler.schedule(MoveJob.class, info);
-//                break;
-//            default:
-//                System.out.println("Unknown job class: " + className);
-//        }
+//        // Schedule job using the scheduler instance
+//        scheduler.schedule(jobClass, info);
 //    }
+
 
     public static void main(String[] args) {
 //        System.setProperty("BASE_PATH", "C:\\Users\\keidi.tay.chuan\\Documents\\quartz_logs");
@@ -103,20 +94,83 @@ public class QuartzSchedulerApplication {
     }
 
     public void scheduleJobs() {
-        final TriggerInfo info = new TriggerInfo();
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("job.properties")) {
 
-        info.setCronExp("5 0/1 * * * ?"); // Run every min, at 5th second
-        info.setCallbackData("HelloWorldJob");
-        scheduler.schedule(HelloWorldJob.class, info);
+            if (input == null) {
+                System.out.println("Sorry, unable to find job.properties");
+                return;
+            }
 
-        info.setCronExp("0 20 14 * * ?"); // Run at this specific time every day
-        info.setCallbackData("CopyJob");
-        scheduler.schedule(CopyJob.class, info);
+            Properties prop = new Properties();
+            prop.load(input);
+
+            int jobCount = 0;
+
+            for (String jobName : prop.stringPropertyNames()) {
+                if (jobName.endsWith(".cron")) {
+                    String jobKey = jobName.substring(4, jobName.length() - 5); // Remove the ".cron" suffix
+                    String cronExp = prop.getProperty(jobName);
+                    String fullClassValue = "com.quartz.jobs." + jobKey;
+                    String classKey = "job." + jobKey + ".class";
+                    String commandKey = "job." + jobKey + ".command";
+                    String commandValue = prop.getProperty(commandKey);
+
+                    LOG.info("Processing jobKey: {}, cronExp: {}, classKey: {}, fullClassValue: {}, commandValue: {}",
+                            jobKey, cronExp, classKey, fullClassValue, commandValue);
+
+                    Class<? extends Job> jobClass = null;
+                    try {
+                        Class<?> clazz = Class.forName(fullClassValue);
+                        if (!Job.class.isAssignableFrom(clazz)) {
+                            LOG.error("Class {} does not implement Job interface", fullClassValue);
+                            continue;
+                        }
+                        jobClass = (Class<? extends Job>) clazz;
+                    } catch (ClassNotFoundException | ClassCastException e) {
+                        LOG.error("Error loading job class for key: {}", classKey, e);
+                        continue;
+                    }
+
+                    if (cronExp != null) {
+                        scheduleJob(jobClass, cronExp, commandValue);
+                        jobCount++;
+                    }
+                }
+            }
+
+            LOG.info("Scheduled {} jobs.", jobCount);
+        } catch (IOException ex) {
+            LOG.error("Error loading job properties", ex);
+        }
+    }
+
+    private void scheduleJob(Class<? extends Job> jobClass, String cronExp, String command) {
+        TriggerInfo info = new TriggerInfo();
+        info.setCronExp(cronExp);
+        info.setCallbackData(jobClass.getSimpleName());
+
+        if (command != null) {
+            info.setScriptLocation(command);
+        }
+
+        scheduler.schedule(jobClass, info);
+    }
+
+//    public void scheduleJobs() {
+//        final TriggerInfo info = new TriggerInfo();
+//
+//        info.setCronExp("5 0/1 * * * ?"); // Run every min, at 5th second
+//        info.setCallbackData("HelloWorldJob");
+//        scheduler.schedule(HelloWorldJob.class, info);
+//
+//        info.setCronExp("0 39 15 * * ?"); // Run at this specific time every day
+//        info.setCallbackData("CopyJob");
+//        scheduler.schedule(CopyJob.class, info);
 //
 //        info.setCronExp("0 07 12 * * ?"); // Run at this specific time every day
 //        info.setCallbackData("MoveJob");
 //        scheduler.schedule(MoveJob.class, info);
-    }
+//    }
 
 //    public static void initializeYourLogger(String fileName, String pattern) {
 //

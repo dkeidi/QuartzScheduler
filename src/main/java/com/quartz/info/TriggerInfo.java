@@ -7,6 +7,15 @@ public class TriggerInfo implements Serializable {
     private int remainingFireCount;
     private String cronExp;
     private String callbackData;
+    private String scriptLocation;
+
+    public String getScriptLocation() {
+        return scriptLocation;
+    }
+
+    public void setScriptLocation(String scriptLocation) {
+        this.scriptLocation = scriptLocation;
+    }
 
     public boolean isRunForever() {
         return runForever;
