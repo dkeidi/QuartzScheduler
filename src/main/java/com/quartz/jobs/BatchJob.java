@@ -1,11 +1,9 @@
 package com.quartz.jobs;
 
-import com.quartz.info.TriggerInfo;
 import com.quartz.util.JobExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.Job;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -17,6 +15,8 @@ public class BatchJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         String command = context.getJobDetail().getJobDataMap().getString("command");
+        String jobKey = context.getJobDetail().getKey().getName();
+        Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
 
         try {
             LOG.info("Executing command: {}", command);
