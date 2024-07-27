@@ -3,7 +3,6 @@ package com.quartz.util;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 
 public class JobExecutor {
