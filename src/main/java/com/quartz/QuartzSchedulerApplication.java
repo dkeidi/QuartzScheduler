@@ -1,6 +1,7 @@
 package com.quartz;
 
 import com.quartz.jobs.BatchJob;
+import com.quartz.util.JobPropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
