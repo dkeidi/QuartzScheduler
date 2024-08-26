@@ -6,14 +6,15 @@ import org.apache.logging.log4j.Logger;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.io.IOException;
 
-public class BatchJob implements Job {
+public class BatchJob extends QuartzJobBean {
     private static final Logger LOG = LogManager.getLogger(BatchJob.class);
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         String command = context.getJobDetail().getJobDataMap().getString("command");
         String jobKey = context.getJobDetail().getKey().getName();
         Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
