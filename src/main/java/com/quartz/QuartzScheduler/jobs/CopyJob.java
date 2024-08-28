@@ -1,15 +1,12 @@
-package com.quartz.jobs;
+package com.quartz.QuartzScheduler.jobs;
 
-import com.quartz.info.TriggerInfo;
-import com.quartz.util.JobExecutor;
+import com.quartz.QuartzScheduler.info.TriggerInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 @Component
 public class CopyJob implements Job {

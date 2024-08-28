@@ -1,6 +1,10 @@
-package com.quartz;
+package com.quartz.QuartzScheduler;
 
+import com.quartz.QuartzScheduler.model.User;
+import com.quartz.QuartzScheduler.repo.UserRepo;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,18 +32,21 @@ public class QuartzSchedulerApplication {
         // Specify the URL with integrated security
         String url = "jdbc:sqlserver://localhost:1433;databaseName=quartz_scheduler;encrypt=true;trustServerCertificate=true;integratedSecurity=true;";
 
-        // Specify the path to sqljdbc_auth.dll if necessary
-        System.setProperty("java.library.path", "C:\\Program Files\\Java\\jdk-17\\bin\\sqljdbc_auth.dll");
-
-        // Optionally, you might need to refresh the library path (only necessary in some environments)
-        System.setProperty("sun.boot.library.path", System.getProperty("java.library.path"));
-
-        String user="";
-        String password="";
         try {
-            Connection conn = DriverManager.getConnection(url, user, password);
-            System.out.println("Connection successful");
-        } catch (SQLException e) {
+            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+
+            User user1 = context.getBean(User.class);
+            user1.setId(111);
+            user1.setName("kei");
+            user1.setGender("JAVA");
+
+            UserRepo repo = context.getBean(UserRepo.class);
+            repo.save(user1);
+
+            System.out.println(repo.findAll());
+
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

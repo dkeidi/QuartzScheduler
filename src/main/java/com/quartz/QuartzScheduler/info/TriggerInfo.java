@@ -1,4 +1,4 @@
-package com.quartz.info;
+package com.quartz.QuartzScheduler.info;
 
 import java.io.Serializable;
 

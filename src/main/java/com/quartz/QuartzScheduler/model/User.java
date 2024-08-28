@@ -1,9 +1,12 @@
-package com.quartz.info;
+package com.quartz.QuartzScheduler.model;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+@Component
+@Scope("prototype") //create new objects for different requests
 
 public class User {
-    private int id;
-    private String name;
-    private String gender;
 
     public int getId() {
         return id;
@@ -29,6 +32,9 @@ public class User {
         this.gender = gender;
     }
 
+    private int id;
+    private String name;
+    private String gender;
 
     @Override
     public String toString() {
