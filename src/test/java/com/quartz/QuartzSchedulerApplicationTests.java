@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler;
+package com.quartz;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

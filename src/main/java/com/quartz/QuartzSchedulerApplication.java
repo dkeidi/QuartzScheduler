@@ -1,9 +1,12 @@
-package com.quartz.QuartzScheduler;
+package com.quartz;
 
-import com.quartz.QuartzScheduler.repo.UserRepo;
-import com.quartz.QuartzScheduler.jobs.BatchJob;
-import com.quartz.QuartzScheduler.util.JobPropertiesLoader;
-import com.quartz.QuartzScheduler.util.Log4j2XmlGenerator;
+import com.quartz.jobs.BatchJob;
+import com.quartz.jobs.CopyJob;
+import com.quartz.jobs.HelloWorldJob;
+import com.quartz.services.SchedulerService;
+import com.quartz.util.JobPropertiesLoader;
+import com.quartz.util.Log4j2XmlGenerator;
+import com.quartz.info.TriggerInfo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,6 +33,7 @@ import java.util.Properties;
 public class QuartzSchedulerApplication {
 
     private static Logger LOG;
+    private static SchedulerService scheduler;
 
     @Autowired
     public static String getJarDir() {
@@ -57,7 +61,33 @@ public class QuartzSchedulerApplication {
         }
     }
 
+    public QuartzSchedulerApplication(SchedulerService scheduler) {
+        QuartzSchedulerApplication.scheduler = scheduler;
+    }
+
     public static void main(String[] args) {
+        boolean readFromExternalProperties = false; //will get from properties file
+        if (readFromExternalProperties) {
+            jobsFromProperties(args);
+        } else {
+            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class);
+            scheduleFixedJobs();
+        }
+    }
+
+    private static void scheduleFixedJobs() {
+        final TriggerInfo info = new TriggerInfo();
+
+        info.setCronExp("0/10 * * * * ?"); // Run every min, at 5th second
+        info.setCallbackData("HelloWorldJob");
+        scheduler.schedule(HelloWorldJob.class, info);
+
+//        info.setCronExp("0 20 14 * * ?"); // Run at this specific time every day
+//        info.setCallbackData("CopyJob");
+//        scheduler.schedule(CopyJob.class, info);
+    }
+
+    private static void jobsFromProperties(String[] args) {
         try {
             // Determine the directory of the JAR file
             String jarDir = getJarDir();
@@ -80,42 +110,25 @@ public class QuartzSchedulerApplication {
 
             LOG = LogManager.getLogger(QuartzSchedulerApplication.class);
 
-            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class).scheduleJobs();
+            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class).scheduleJobsFromProperties();
 
             //get data from DB
             ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-            UserRepo repo = context.getBean(UserRepo.class);
-            System.out.println("repo: " + repo.findAll());
+//            UserRepo repo = context.getBean(UserRepo.class);
+//            User user1 = context.getBean(User.class);
+//            user1.setId(111);
+//            user1.setName("kei");
+//            user1.setGender("JAVA");
+//
+//            repo.save(user1);
+//            System.out.println("repo: " + repo.findAll());
 
         } catch (IOException e) {
             LOG.debug(e);
         }
     }
 
-//    public static void main(String[] args) {
-//        // Specify the URL with integrated security
-//        String url = "jdbc:sqlserver://localhost:1433;databaseName=quartz_scheduler;encrypt=true;trustServerCertificate=true;integratedSecurity=true;";
-//
-//        try {
-//            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-//
-//            User user1 = context.getBean(User.class);
-////            user1.setId(111);
-////            user1.setName("kei");
-////            user1.setGender("JAVA");
-////
-//            UserRepo repo = context.getBean(UserRepo.class);
-////            repo.save(user1);
-//
-//            System.out.println(repo.findAll());
-//
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-    public void scheduleJobs() {
+    public void scheduleJobsFromProperties() {
         try (InputStream externalInput = Files.newInputStream(Paths.get("job.properties"))) {
 
             Properties prop = new Properties();

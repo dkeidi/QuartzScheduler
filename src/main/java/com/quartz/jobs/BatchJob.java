@@ -1,6 +1,6 @@
-package com.quartz.QuartzScheduler.jobs;
+package com.quartz.jobs;
 
-import com.quartz.QuartzScheduler.util.JobExecutor;
+import com.quartz.util.JobExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.JobExecutionContext;

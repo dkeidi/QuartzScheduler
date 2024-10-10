@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler.jobs;
+package com.quartz.jobs;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

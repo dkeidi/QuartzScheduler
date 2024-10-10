@@ -1,6 +1,6 @@
-package com.quartz.QuartzScheduler.repo;
+package com.quartz.repo;
 
-import com.quartz.QuartzScheduler.model.User;
+import com.quartz.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

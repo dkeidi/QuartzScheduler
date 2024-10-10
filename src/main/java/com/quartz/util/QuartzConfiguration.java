@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler.util;
+package com.quartz.util;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.quartz.QuartzDataSource;

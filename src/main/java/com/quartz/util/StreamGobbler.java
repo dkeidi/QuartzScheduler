@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler.util;
+package com.quartz.util;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

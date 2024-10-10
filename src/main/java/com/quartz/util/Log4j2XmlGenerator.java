@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler.util;
+package com.quartz.util;
 
 import java.io.FileWriter;
 import java.io.IOException;

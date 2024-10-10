@@ -1,4 +1,4 @@
-package com.quartz.QuartzScheduler.util;
+package com.quartz.util;
 
 import org.apache.logging.log4j.Logger;
 
