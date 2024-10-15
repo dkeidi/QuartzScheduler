@@ -14,6 +14,29 @@
                     pattern="%d{dd-MM-yyyy HH:mm:ss} %-5p %c{1}:%L - %m%n" />
         </Console>
 
+        <!-- JDBC appender configuration -->
+        <JDBC name="LogToDB" tableName="LOG_SCHEDULER">
+
+            <!-- If Using then JNDI DateSource -->
+            <!-- <DataSource jndiName="java:/comp/env/jdbc/LoggingDataSource" /> -->
+
+<!--            <ConnectionFactory-->
+<!--                    class="com.howtodoinjava.demo.jdbcappender.LogsStoreConnectionFactory"-->
+<!--                    method="getConnection" />-->
+<!--            <DataSource jndiName="jdbc:sqlserver://C11-O35WZ30DZ24\\SQLEXPRESS:1433;databaseName=quartz_scheduler;integratedSecurity=true;encrypt=true;trustServerCertificate=true;" />-->
+            <DriverManager connectionString="jdbc:sqlserver://C11-O35WZ30DZ24\\SQLEXPRESS:1433;databaseName=quartz_scheduler;integratedSecurity=true;encrypt=true;trustServerCertificate=true;"
+                           driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+            <Column name="ID" pattern="%u" />
+            <Column name="JOB_NAME" pattern="%logger" />
+            <Column name="DATETIME_START" isEventTimestamp="true" />
+            <Column name="DATETIME_END" isEventTimestamp="true" />
+<!--            <Column name="CLASS" pattern="%logger" />-->
+<!--            <Column name="LEVEL" pattern="%level" />-->
+<!--            <Column name="MESSAGE" pattern="%message" />-->
+<!--            <Column name="EXCEPTION" pattern="%ex{full}" isClob="true"/>-->
+        </JDBC>
+
+
         <!-- RollingFile appender configuration -->
         <!-- filePattern is used for setting file name of archived log file -->
         <RollingFile name="LogToFile"
@@ -56,6 +79,7 @@
         <Logger name="com.quartz.jobs.HelloWorldJob" level="debug" additivity="false">
             <AppenderRef ref="LogHelloToFile"/>
             <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogToDB" />
         </Logger>
 
         <Logger name="com.quartz.jobs.CopyJob" level="trace" additivity="false">
@@ -67,6 +91,7 @@
         <Root level="error">
             <AppenderRef ref="LogToFile"/>
             <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogToDB"/>
         </Root>
 
     </Loggers>

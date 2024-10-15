@@ -38,7 +38,7 @@ dependencies {
 }
 
 configurations {
-	all {
+	configureEach {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
 	}
 }
