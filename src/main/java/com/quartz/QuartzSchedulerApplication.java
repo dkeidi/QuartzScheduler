@@ -77,7 +77,7 @@ public class QuartzSchedulerApplication {
 
             // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
             QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-            app.scheduleFixedJobs(args);
+//            app.scheduleFixedJobs(args);
 
 //            User user1 = context.getBean(User.class);
 //            user1.setId(111);
@@ -91,17 +91,17 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private static void scheduleFixedJobs(String[] args) {
-        final TriggerInfo info = new TriggerInfo();
-
-        info.setCronExp("0/10 * * * * ?"); // Run every min, at 5th second
-        info.setCallbackData("HelloWorldJob");
-        scheduler.schedule(HelloWorldJob.class, info);
-
-        info.setCronExp("0 20 14 * * ?"); // Run at this specific time every day
-        info.setCallbackData("CopyJob");
-        scheduler.schedule(CopyJob.class, info);
-    }
+//    private static void scheduleFixedJobs(String[] args) {
+//        final TriggerInfo info = new TriggerInfo();
+//
+//        info.setCronExp("0/10 * * * * ?"); // Run every min, at 5th second
+//        info.setCallbackData("HelloWorldJob");
+//        scheduler.schedule(HelloWorldJob.class, info);
+//
+//        info.setCronExp("0 20 14 * * ?"); // Run at this specific time every day
+//        info.setCallbackData("CopyJob");
+//        scheduler.schedule(CopyJob.class, info);
+//    }
 
     private static void jobsFromProperties(String[] args) {
         try {

@@ -30,6 +30,13 @@ public class SchedulerService {
 
         try {
             LOG.info("{} job scheduled.", info.getCallbackData());
+            LOG.info("Job key is {}.", jobDetail.getKey());
+
+            if (scheduler.checkExists(jobDetail.getKey())){
+                scheduler.deleteJob(jobDetail.getKey());
+            }
+
+
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             LOG.error(e.getMessage(), e);
