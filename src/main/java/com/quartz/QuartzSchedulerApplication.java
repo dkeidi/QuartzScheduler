@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 @SpringBootApplication
+@PropertySource("classpath:application.properties")
 public class QuartzSchedulerApplication {
 
     private static Logger LOG;
@@ -39,7 +41,8 @@ public class QuartzSchedulerApplication {
         QuartzSchedulerApplication.scheduler = scheduler;
     }
 
-//    public static String getJarDir() { //for RAMJobStore jobstore
+    //for RAMJobStore jobstore
+//    public static String getJarDir() {
 //        try {
 //            // Get the location of the JAR file
 //            File jarFile = new File(QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -91,38 +94,35 @@ public class QuartzSchedulerApplication {
     public static void main(String[] args) throws SchedulerException {
         boolean readFromExternalProperties = false; //will get from properties file
         if (readFromExternalProperties) {
-            jobsFromProperties(args);
+            _jobsFromExternalProperties(args);
         } else {
             // Run the application and get the application context
             ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
 
             // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
             QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-            app.scheduleFixedJobs(args);
+            app._scheduleFixedJobs(args);
 
             scheduler.getScheduledJobs();
         }
     }
 
-    private static void scheduleFixedJobs(String[] args) {
+    private static void _scheduleFixedJobs(String[] args) {
         final TriggerInfo info = new TriggerInfo();
 
         info.setCronExp("0/5 0 8 * * ?"); // Run every min, at 5th second
         info.setCallbackData("HelloWorldJob");
         scheduler.schedule(HelloWorldJob.class, info);
 
-//        scheduler.deleteJob(HelloWorldJob.class);
-
-        info.setCronExp("0 39 17 * * ?"); // Run at this specific time every day
+        info.setCronExp("0 0 19 * * ?"); // Run at this specific time every day
         info.setCallbackData("CopyJob");
         scheduler.schedule(CopyJob.class, info);
     }
 
-    private static void jobsFromProperties(String[] args) {
+    private static void _jobsFromExternalProperties(String[] args) {
         try {
             // Determine the directory of the JAR file
             String jarDir = getJarDir();
-            System.out.println("here " + jarDir);
 
             // Specify the location for log4j2.xml
             String log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
@@ -141,14 +141,14 @@ public class QuartzSchedulerApplication {
 
             LOG = LogManager.getLogger(QuartzSchedulerApplication.class);
 
-            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class).scheduleJobsFromProperties();
+            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties();
 
         } catch (IOException e) {
             LOG.debug(e);
         }
     }
 
-    public void scheduleJobsFromProperties() {
+    private void _scheduleJobsFromProperties() {
         try (InputStream externalInput = Files.newInputStream(Paths.get("job.properties"))) {
 
             Properties prop = new Properties();
@@ -166,7 +166,7 @@ public class QuartzSchedulerApplication {
 
                     LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
 
-                    scheduleJob(scheduler, jobKey, cronExp, commandValue);
+                    _scheduleJob(scheduler, jobKey, cronExp, commandValue);
                 }
             }
 
@@ -176,7 +176,7 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private void scheduleJob(Scheduler scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
+    private void _scheduleJob(Scheduler scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
@@ -190,80 +190,4 @@ public class QuartzSchedulerApplication {
 
         scheduler.scheduleJob(jobDetail, trigger);
     }
-
-//    public void scheduleJobs() {
-//        String sql = "select * from [user];";
-//        List<User> users  = jdbcTemplate.query(sql, BeanPropertyRowMapper.newInstance(User.class));
-//
-//        users.forEach(System.out :: println);
-//
-//
-//        try (InputStream externalInput = Files.newInputStream(Paths.get("job.properties"))) {
-//
-//            Properties prop = new Properties();
-//            prop.load(externalInput);
-//
-//            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-//            scheduler.start();
-//
-//            for (String jobName : prop.stringPropertyNames()) {
-//                if (jobName.endsWith(".cron")) {
-//                    String jobKey = jobName.substring(4, jobName.length() - 5); // Remove the ".cron" suffix
-//                    String cronExp = prop.getProperty(jobName);
-//                    String commandKey = "job." + jobKey + ".command";
-//                    String commandValue = prop.getProperty(commandKey);
-//
-//                    LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
-//
-//                    scheduleJob(scheduler, jobKey, cronExp, commandValue);
-//                }
-//            }
-//
-//            LOG.info("Scheduled all jobs.");
-//        } catch (IOException | SchedulerException ex) {
-//            LOG.error("Error scheduling jobs", ex);
-//        }
-//    }
-//
-//    private void scheduleJob(Scheduler scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
-//        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
-//                .withIdentity(jobKey)
-//                .usingJobData("command", commandValue)
-//                .usingJobData("folder", jobKey)
-//                .build();
-//
-//        Trigger trigger = TriggerBuilder.newTrigger()
-//                .withIdentity(jobKey + "_trigger")
-//                .withSchedule(CronScheduleBuilder.cronSchedule(cronExp))
-//                .build();
-//
-//        scheduler.scheduleJob(jobDetail, trigger);
-//    }
-//
-//    private void query() {
-//        String url = "jdbc:sqlserver://localhost:1433;databaseName=quartz_scheduler;encrypt=true;trustServerCertificate=true;integratedSecurity=true;";
-//
-//        // Specify the path to sqljdbc_auth.dll if necessary
-//        System.setProperty("java.library.path", "C:\\Program Files\\Java\\jdk-17\\bin\\sqljdbc_auth.dll");
-//
-//        // Optionally, you might need to refresh the library path (only necessary in some environments)
-//        System.setProperty("sun.boot.library.path", System.getProperty("java.library.path"));
-//
-//        String user="";
-//        String password="";
-//        try {
-//            Connection conn = DriverManager.getConnection(url, user, password);
-//            LOG.info("Connection successful");
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//    @Override
-//    public void run(String... args) throws Exception {
-//
-//        String sql = "select * from [user];";
-//        List<User> users  = jdbcTemplate.query(sql, BeanPropertyRowMapper.newInstance(User.class));
-//
-//        users.forEach(System.out :: println);
-//    }
 }

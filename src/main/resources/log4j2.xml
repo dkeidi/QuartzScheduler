@@ -1,47 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="INFO">
+<Configuration status="DEBUG">
     <!-- Logging Properties -->
     <Properties>
         <Property name="LOG_PATTERN">%d{dd-MM-yyyy'T'HH:mm:ss.SSSZ} %p %m%n</Property>
-        <Property name="basePath">quartz_logs</Property>
+        <Property name="BASE_FOLDER">quartz_logs</Property>
+        <Property name="DB_CONNECTION_STRING">
+            jdbc:sqlserver://C11-O35WZ30DZ24\\SQLEXPRESS:1433;databaseName=quartz_scheduler;integratedSecurity=true;encrypt=true;trustServerCertificate=true;
+        </Property>
+        <Property name="DB_DRIVER_CLASS">com.microsoft.sqlserver.jdbc.SQLServerDriver</Property>
         <!--        <Property name="basePath">$${env:LOG_PATH}</Property>-->
     </Properties>
 
     <Appenders>
         <!-- Console appender configuration -->
         <Console name="LogToConsole" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%d{dd-MM-yyyy HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+            <PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
         </Console>
 
         <!-- JDBC appender configuration -->
-        <JDBC name="LogToDB" tableName="LOG_SCHEDULER">
-
-            <!-- If Using then JNDI DateSource -->
-            <!-- <DataSource jndiName="java:/comp/env/jdbc/LoggingDataSource" /> -->
-
-<!--            <ConnectionFactory-->
-<!--                    class="com.howtodoinjava.demo.jdbcappender.LogsStoreConnectionFactory"-->
-<!--                    method="getConnection" />-->
-<!--            <DataSource jndiName="jdbc:sqlserver://C11-O35WZ30DZ24\\SQLEXPRESS:1433;databaseName=quartz_scheduler;integratedSecurity=true;encrypt=true;trustServerCertificate=true;" />-->
-            <DriverManager connectionString="jdbc:sqlserver://C11-O35WZ30DZ24\\SQLEXPRESS:1433;databaseName=quartz_scheduler;integratedSecurity=true;encrypt=true;trustServerCertificate=true;"
-                           driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
-            <Column name="ID" pattern="%u" />
-            <Column name="JOB_NAME" pattern="%logger" />
-            <Column name="DATETIME_START" isEventTimestamp="true" />
-            <Column name="DATETIME_END" isEventTimestamp="true" />
-<!--            <Column name="CLASS" pattern="%logger" />-->
-<!--            <Column name="LEVEL" pattern="%level" />-->
-<!--            <Column name="MESSAGE" pattern="%message" />-->
-<!--            <Column name="EXCEPTION" pattern="%ex{full}" isClob="true"/>-->
+        <JDBC name="LogJobToDB" tableName="LOG_SCHEDULER">
+            <DriverManager connectionString="${DB_CONNECTION_STRING}" driverClassName="${DB_DRIVER_CLASS}"/>
+            <Column name="ID" pattern="%X{jobId}"/>
+            <Column name="JOB_NAME" pattern="%X{jobName}"/>
+            <Column name="DATETIME_START" pattern="%X{startTime}"/>
+            <Column name="DATETIME_END" pattern="%X{endTime}"/>
+            <Column name="STATUS" pattern="%X{status}"/>
+            <!--            <Column name="CLASS" pattern="%logger" />-->
+            <!--            <Column name="LEVEL" pattern="%level" />-->
+            <!--            <Column name="MESSAGE" pattern="%message" />-->
+            <!--            <Column name="EXCEPTION" pattern="%ex{full}" isClob="true"/>-->
         </JDBC>
 
+        <JDBC name="LogFileToDB" tableName="LOG_FILE">
+            <DriverManager connectionString="${DB_CONNECTION_STRING}" driverClassName="${DB_DRIVER_CLASS}"/>
+            <MarkerFilter marker="FILE_TRANSFER" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Column name="ID" pattern="%u"/>
+            <Column name="SCHEDULER_ID" pattern="%X{jobId}" />
+            <Column name="DATETIME_START" isEventTimestamp="true"/>
+            <Column name="FILENAME" pattern="%dir"/>
+            <Column name="FINAL_FILENAME" pattern="%file"/>
+        </JDBC>
+
+        <JDBC name="LogDetailToDB" tableName="LOG_DETAIL">
+            <DriverManager connectionString="${DB_CONNECTION_STRING}" driverClassName="${DB_DRIVER_CLASS}"/>
+            <Column name="ID" pattern="%u"/>
+            <Column name="SCHEDULER_ID" pattern="%X{jobId}" />
+            <Column name="LOG_LEVEL" pattern="%level"/>
+            <Column name="DESCRIPTION" pattern="%msg"/>
+            <Column name="LOG_FILENAME" pattern="%file"/>
+        </JDBC>
 
         <!-- RollingFile appender configuration -->
         <!-- filePattern is used for setting file name of archived log file -->
         <RollingFile name="LogToFile"
-                     fileName="${basePath}/${date:dd-MM-yyyy}.log"
-                     filePattern="${basePath}/%d{dd-MM-yyyy}.log.gz">
+                     fileName="${BASE_FOLDER}/${date:dd-MM-yyyy}.log"
+                     filePattern="${BASE_FOLDER}/%d{dd-MM-yyyy}.log.gz">
             <PatternLayout>
                 <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n
                 </pattern>
@@ -49,15 +62,14 @@
 
             <!-- Files are roll over every day -->
             <Policies>
-                <TimeBasedTriggeringPolicy interval="2" modulate="true" />
-                <SizeBasedTriggeringPolicy size="10MB" />
+                <TimeBasedTriggeringPolicy interval="2" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
 
         </RollingFile>
-
         <RollingFile name="LogHelloToFile"
-                     fileName="${basePath}/helloworld/${date:dd-MM-yyyy}.log"
-                     filePattern="${basePath}/%d{dd-MM-yyyy}.log.gz">
+                     fileName="${BASE_FOLDER}/helloworld/${date:dd-MM-yyyy}.log"
+                     filePattern="${BASE_FOLDER}/%d{dd-MM-yyyy}.log.gz">
             <PatternLayout>
                 <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n
                 </pattern>
@@ -65,33 +77,60 @@
 
             <!-- Files are roll over every day -->
             <Policies>
-                <TimeBasedTriggeringPolicy interval="2" modulate="true" />
-                <SizeBasedTriggeringPolicy size="10MB" />
+                <TimeBasedTriggeringPolicy interval="2" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
 
         </RollingFile>
+        <RollingFile name="LogCopyToFile"
+                     fileName="${BASE_FOLDER}/copyjob/${date:dd-MM-yyyy}.log"
+                     filePattern="${BASE_FOLDER}/copyjob/%d{dd-MM-yyyy}.log.gz">
+            <PatternLayout>
+                <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
 
+            <!-- Files are roll over every day -->
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="2" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+        </RollingFile>
     </Appenders>
 
-
     <Loggers>
-
+        <Logger name="main" level="debug" additivity="false">
+            <AppenderRef ref="LogToFile"/>
+            <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogJobToDB"/>
+            <AppenderRef ref="LogDetailToDB"/>
+        </Logger>
         <Logger name="com.quartz.jobs.HelloWorldJob" level="debug" additivity="false">
             <AppenderRef ref="LogHelloToFile"/>
             <AppenderRef ref="LogToConsole"/>
-            <AppenderRef ref="LogToDB" />
+            <AppenderRef ref="LogJobToDB"/>
+            <AppenderRef ref="LogDetailToDB"/>
         </Logger>
 
-        <Logger name="com.quartz.jobs.CopyJob" level="trace" additivity="false">
-            <AppenderRef ref="LogToFile"/>
+        <Logger name="com.quartz.jobs.CopyJob" level="info" additivity="false">
+            <AppenderRef ref="LogCopyToFile"/>
             <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogJobToDB"/>
+            <AppenderRef ref="LogFileToDB">
+                <Filters>
+                    <RegexFilter
+                            regex="(?i).*\.(txt|log|csv|json|xml|html|htm|pdf|doc|docx|xls|xlsx|ppt|pptx|jpg|jpeg|png|bmp|tiff||zip|tar|gz|7z|rar|sql|sh|bat).*"
+                            onMatch="ACCEPT" onMismatch="DENY"/>
+                </Filters>
+            </AppenderRef>
+            <AppenderRef ref="LogDetailToDB"/>
         </Logger>
 
-
-        <Root level="error">
+        <Root level="debug">
+            <AppenderRef ref="LogHelloToFile"/>
             <AppenderRef ref="LogToFile"/>
+            <AppenderRef ref="LogCopyToFile"/>
             <AppenderRef ref="LogToConsole"/>
-            <AppenderRef ref="LogToDB"/>
         </Root>
 
     </Loggers>
