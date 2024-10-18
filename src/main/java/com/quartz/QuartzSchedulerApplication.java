@@ -1,18 +1,12 @@
 package com.quartz;
 
+import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
 import com.quartz.jobs.HelloWorldJob;
-import com.quartz.model.User;
-import com.quartz.repo.UserRepo;
 import com.quartz.services.SchedulerService;
 import com.quartz.util.JobPropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
-import com.quartz.info.TriggerInfo;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
@@ -20,6 +14,9 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,13 +35,35 @@ public class QuartzSchedulerApplication {
     private static SchedulerService scheduler;
 
     @Autowired
+    public QuartzSchedulerApplication(SchedulerService scheduler) {
+        QuartzSchedulerApplication.scheduler = scheduler;
+    }
+
+//    public static String getJarDir() { //for RAMJobStore jobstore
+//        try {
+//            // Get the location of the JAR file
+//            File jarFile = new File(QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+//            // Get the parent directory of the JAR file
+//            return jarFile.getParentFile().getAbsolutePath();
+//        } catch (URISyntaxException e) {
+//            throw new RuntimeException("Failed to determine the JAR file directory.", e);
+//        }
+//    }
+//
     public static String getJarDir() {
         try {
             // Retrieve the path as a URL and convert it to a URI
             URI uri = QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI();
 
+            // Check if it's a file URI
+            if (uri.getScheme().equals("file")) {
+                File jarFile = new File(uri);
+                return jarFile.getParentFile().getAbsolutePath();
+            }
+
             // Convert to a String and remove the prefix if it starts with "jar:"
             String path = uri.toString();
+
             if (path.startsWith("jar:")) {
                 path = path.substring(4); // Strip off "jar:"
             }
@@ -56,18 +75,20 @@ public class QuartzSchedulerApplication {
             }
 
             // Convert back to URI, then to Path, and get the absolute path
-            return Paths.get(new URI(path)).toAbsolutePath().toString();
+            int lastIndex = Paths.get(new URI(path)).toAbsolutePath().toString().lastIndexOf('\\');
+
+            if (lastIndex == -1) {
+                return Paths.get(new URI(path)).toAbsolutePath().toString();
+            }
+
+            return Paths.get(new URI(path)).toAbsolutePath().toString().substring(0, lastIndex);
 
         } catch (URISyntaxException e) {
             throw new RuntimeException("Failed to determine the JAR file path.", e);
         }
     }
 
-    public QuartzSchedulerApplication(SchedulerService scheduler) {
-        QuartzSchedulerApplication.scheduler = scheduler;
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SchedulerException {
         boolean readFromExternalProperties = false; //will get from properties file
         if (readFromExternalProperties) {
             jobsFromProperties(args);
@@ -77,31 +98,25 @@ public class QuartzSchedulerApplication {
 
             // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
             QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-//            app.scheduleFixedJobs(args);
+            app.scheduleFixedJobs(args);
 
-//            User user1 = context.getBean(User.class);
-//            user1.setId(111);
-//            user1.setName("kei");
-//            user1.setGender("JAVA");
-//
-//            UserRepo repo = context.getBean(UserRepo.class);
-//            repo.save(user1);
-//
-//            System.out.println(repo.findAll());
+            scheduler.getScheduledJobs();
         }
     }
 
-//    private static void scheduleFixedJobs(String[] args) {
-//        final TriggerInfo info = new TriggerInfo();
-//
-//        info.setCronExp("0/10 * * * * ?"); // Run every min, at 5th second
-//        info.setCallbackData("HelloWorldJob");
-//        scheduler.schedule(HelloWorldJob.class, info);
-//
-//        info.setCronExp("0 20 14 * * ?"); // Run at this specific time every day
-//        info.setCallbackData("CopyJob");
-//        scheduler.schedule(CopyJob.class, info);
-//    }
+    private static void scheduleFixedJobs(String[] args) {
+        final TriggerInfo info = new TriggerInfo();
+
+        info.setCronExp("0/5 0 8 * * ?"); // Run every min, at 5th second
+        info.setCallbackData("HelloWorldJob");
+        scheduler.schedule(HelloWorldJob.class, info);
+
+//        scheduler.deleteJob(HelloWorldJob.class);
+
+        info.setCronExp("0 39 17 * * ?"); // Run at this specific time every day
+        info.setCallbackData("CopyJob");
+        scheduler.schedule(CopyJob.class, info);
+    }
 
     private static void jobsFromProperties(String[] args) {
         try {
@@ -127,17 +142,6 @@ public class QuartzSchedulerApplication {
             LOG = LogManager.getLogger(QuartzSchedulerApplication.class);
 
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class).scheduleJobsFromProperties();
-
-            //get data from DB
-            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-//            UserRepo repo = context.getBean(UserRepo.class);
-//            User user1 = context.getBean(User.class);
-//            user1.setId(111);
-//            user1.setName("kei");
-//            user1.setGender("JAVA");
-//
-//            repo.save(user1);
-//            System.out.println("repo: " + repo.findAll());
 
         } catch (IOException e) {
             LOG.debug(e);
