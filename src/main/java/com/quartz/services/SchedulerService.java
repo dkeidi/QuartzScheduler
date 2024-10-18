@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,6 +41,26 @@ public class SchedulerService {
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+
+    public void getScheduledJobs() throws SchedulerException {
+        for (String groupName : scheduler.getJobGroupNames()) {
+
+            for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+                String jobName = jobKey.getName();
+                String jobGroup = jobKey.getGroup();
+
+                //get job's trigger
+                List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+                Date nextFireTime = triggers.get(0).getNextFireTime();
+
+                System.out.println("[jobName] : " + jobName + " [groupName] : "
+                        + jobGroup + " - " + nextFireTime);
+
+            }
         }
     }
 
