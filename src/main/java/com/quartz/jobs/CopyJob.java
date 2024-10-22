@@ -41,7 +41,7 @@ public class CopyJob implements Job {
             LOG.info("Starting job: copy_file.bat, frequency: " +  info.getCronExp());
             String command = "C:\\Users\\keidi.tay.chuan\\Documents\\MyQuartzTest\\batch_files\\copy_file.bat";
 
-            JobExecutor.executeJob(context.getJobDetail().getKey().getName(), command, LOG);
+            JobExecutor.executeJob(context.getJobDetail().getKey().getName(), command, LOG, jobId);
 
             now = LocalDateTime.now().format(formatter);
             ThreadContext.put("startTime", now);
