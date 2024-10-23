@@ -33,12 +33,12 @@
 
         <JDBC name="LogFileToDB" tableName="LOG_FILE">
             <DriverManager connectionString="${DB_CONNECTION_STRING}" driverClassName="${DB_DRIVER_CLASS}"/>
-            <MarkerFilter marker="FILE_TRANSFER" onMatch="ACCEPT" onMismatch="DENY"/>
+<!--            <MarkerFilter marker="FILE_TRANSFER" onMatch="ACCEPT" onMismatch="DENY"/>-->
             <Column name="ID" pattern="%u"/>
             <Column name="SCHEDULER_ID" pattern="%X{jobId}" />
             <Column name="DATETIME_START" isEventTimestamp="true"/>
-            <Column name="FILENAME" pattern="%dir"/>
-            <Column name="FINAL_FILENAME" pattern="%file"/>
+            <Column name="FILENAME" pattern="%msg"/>
+            <Column name="FINAL_FILENAME" pattern="%msg"/>
         </JDBC>
 
         <JDBC name="LogDetailToDB" tableName="LOG_DETAIL">
