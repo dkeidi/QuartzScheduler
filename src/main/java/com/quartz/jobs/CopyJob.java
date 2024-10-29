@@ -1,6 +1,6 @@
 package com.quartz.jobs;
 
-import com.quartz.info.TriggerInfo;
+import com.quartz.util.CustomLogger;
 import com.quartz.util.JobExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,61 +8,65 @@ import org.apache.logging.log4j.ThreadContext;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
+import org.quartz.Scheduler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+
 
 @Component
 public class CopyJob implements Job {
+
     private static final Logger LOG = LogManager.getLogger(CopyJob.class);
+
+    // Constants
+    private static final String COMMAND = "C:\\Users\\keidi.tay.chuan\\Documents\\MyQuartzTest\\batch_files\\copy_file.bat";
+     private static final String JOB_NAME = "CopyJob";
+    String LOG_FILENAME = JOB_NAME + "/" + CustomLogger.getCurrentDate() + ".log";
 
     @Override
     public void execute(JobExecutionContext context) {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        TriggerInfo info = (TriggerInfo) jobDataMap.get(CopyJob.class.getSimpleName());
-
-        String jobId = UUID.randomUUID().toString();  // Generate a UUID
-        ThreadContext.put("jobId", jobId);  // Put the actual UUID into the ThreadContext
-
-        ThreadContext.put("jobName", "CopyJob");
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        String now = LocalDateTime.now().format(formatter);
-        ThreadContext.put("startTime", now);
-        ThreadContext.put("endTime", now);
+//        TriggerInfo info = (TriggerInfo) jobDataMap.get(CopyJob.class.getSimpleName());
+        Scheduler scheduler = context.getScheduler();
+        String jobId = "";
+        String instanceId = "";
 
         try {
-            // directory part needs to be modified
-            LOG.info("Starting job: copy_file.bat, frequency: " +  info.getCronExp());
-            String command = "C:\\Users\\keidi.tay.chuan\\Documents\\MyQuartzTest\\batch_files\\copy_file.bat";
+            jobId = UUID.randomUUID().toString();  // Generate a UUID for job
+            instanceId = scheduler.getSchedulerInstanceId();
 
-            JobExecutor.executeJob(context.getJobDetail().getKey().getName(), command, LOG, jobId);
+            CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId,"Executing", LOG_FILENAME,null);
 
-            now = LocalDateTime.now().format(formatter);
-            ThreadContext.put("startTime", now);
-            ThreadContext.put("endTime", now);
-            ThreadContext.put("status", "Executed");
-            LOG.info("Job completed");
+            _executeJob(jobId, context, instanceId);
 
-        } catch (IOException e) {
-            ThreadContext.put("status", "Error");
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
+            CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId,"Error", LOG_FILENAME, e);
+            LOG.error(e);
             throw new RuntimeException(e);
         } finally {
             ThreadContext.clearAll();
         }
+    }
 
-//        try {
-//            LOG.info("Starting job: {}, frequency: {}", this.getClass().getName(), info.getCronExp());
-//            JobExecutor.executeJob("job." + this.getClass().getName(), info.getScriptLocation(), info.getCronExp(), LOG);
-//        } catch (IOException | InterruptedException e) {
-//            LOG.error("Exception occurred while executing the job", e);
-//        }
+//    private void _initializeThreadContext(String jobId, String instanceId, String jobStatus, Exception e) {
+//        ThreadContext.put("jobId", jobId);
+//        ThreadContext.put("jobName", JOB_NAME);
+//        ThreadContext.put("startTime", CustomLogger.getCurrentTime());
+//        ThreadContext.put("endTime", CustomLogger.getCurrentTime());
+//        ThreadContext.put("instanceId", instanceId);
+//        ThreadContext.put("status", jobStatus);
+//        ThreadContext.put("msg", String.valueOf(e));
+//        ThreadContext.put("logFileName", LOG_FILENAME);
+//    }
+
+    private void _executeJob(String jobId, JobExecutionContext context, String instanceId) throws IOException, InterruptedException {
+        CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId,"Executing", LOG_FILENAME, null);
+
+        JobExecutor.executeJob(context.getJobDetail().getKey().getName(), COMMAND, LOG, jobId, LOG_FILENAME);
+
+        CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId,"Executed", LOG_FILENAME, null);
+        LOG.info("Job completed successfully");
     }
 }
