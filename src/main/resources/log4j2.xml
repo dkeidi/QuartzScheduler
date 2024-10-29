@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG">
+<Configuration status="INFO">
     <!-- Logging Properties -->
     <Properties>
         <Property name="LOG_PATTERN">%d{dd-MM-yyyy'T'HH:mm:ss.SSSZ} %p %m%n</Property>
@@ -24,21 +24,23 @@
             <Column name="JOB_NAME" pattern="%X{jobName}"/>
             <Column name="DATETIME_START" pattern="%X{startTime}"/>
             <Column name="DATETIME_END" pattern="%X{endTime}"/>
+            <Column name="NODE_ID" pattern="%X{instanceId}"/>
             <Column name="STATUS" pattern="%X{status}"/>
-            <!--            <Column name="CLASS" pattern="%logger" />-->
-            <!--            <Column name="LEVEL" pattern="%level" />-->
-            <!--            <Column name="MESSAGE" pattern="%message" />-->
-            <!--            <Column name="EXCEPTION" pattern="%ex{full}" isClob="true"/>-->
+            <Column name="LOG" pattern="%msg"/>
         </JDBC>
 
         <JDBC name="LogFileToDB" tableName="LOG_FILE">
             <DriverManager connectionString="${DB_CONNECTION_STRING}" driverClassName="${DB_DRIVER_CLASS}"/>
-<!--            <MarkerFilter marker="FILE_TRANSFER" onMatch="ACCEPT" onMismatch="DENY"/>-->
             <Column name="ID" pattern="%u"/>
             <Column name="SCHEDULER_ID" pattern="%X{jobId}" />
             <Column name="DATETIME_START" isEventTimestamp="true"/>
             <Column name="FILENAME" pattern="%msg"/>
             <Column name="FINAL_FILENAME" pattern="%msg"/>
+            <Filters>
+                <RegexFilter
+                        regex="(?i).*\.((txt|log|csv|json|xml|html?|pdf|docx?|xlsx?|pptx?|jpe?g|png|bmp|tiff|zip|tar|gz|7z|rar|sql|sh|bat))\b.*"
+                        onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
         </JDBC>
 
         <JDBC name="LogDetailToDB" tableName="LOG_DETAIL">
@@ -47,7 +49,10 @@
             <Column name="SCHEDULER_ID" pattern="%X{jobId}" />
             <Column name="LOG_LEVEL" pattern="%level"/>
             <Column name="DESCRIPTION" pattern="%msg"/>
-            <Column name="LOG_FILENAME" pattern="%file"/>
+            <Column name="LOG_FILENAME" pattern="%X{logFileName}"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
         </JDBC>
 
         <!-- RollingFile appender configuration -->
@@ -68,8 +73,8 @@
 
         </RollingFile>
         <RollingFile name="LogHelloToFile"
-                     fileName="${BASE_FOLDER}/helloworld/${date:dd-MM-yyyy}.log"
-                     filePattern="${BASE_FOLDER}/%d{dd-MM-yyyy}.log.gz">
+                     fileName="${BASE_FOLDER}/HelloWorldJob/${date:dd-MM-yyyy}.log"
+                     filePattern="${BASE_FOLDER}/HelloWorldJob/%d{dd-MM-yyyy}.log.gz">
             <PatternLayout>
                 <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n
                 </pattern>
@@ -83,8 +88,8 @@
 
         </RollingFile>
         <RollingFile name="LogCopyToFile"
-                     fileName="${BASE_FOLDER}/copyjob/${date:dd-MM-yyyy}.log"
-                     filePattern="${BASE_FOLDER}/copyjob/%d{dd-MM-yyyy}.log.gz">
+                     fileName="${BASE_FOLDER}/CopyJob/${date:dd-MM-yyyy}.log"
+                     filePattern="${BASE_FOLDER}/CopyJob/%d{dd-MM-yyyy}.log.gz">
             <PatternLayout>
                 <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n
                 </pattern>
@@ -99,13 +104,7 @@
     </Appenders>
 
     <Loggers>
-        <Logger name="main" level="debug" additivity="false">
-            <AppenderRef ref="LogToFile"/>
-            <AppenderRef ref="LogToConsole"/>
-            <AppenderRef ref="LogJobToDB"/>
-            <AppenderRef ref="LogDetailToDB"/>
-        </Logger>
-        <Logger name="com.quartz.jobs.HelloWorldJob" level="debug" additivity="false">
+        <Logger name="com.quartz.jobs.HelloWorldJob" level="info" additivity="false">
             <AppenderRef ref="LogHelloToFile"/>
             <AppenderRef ref="LogToConsole"/>
             <AppenderRef ref="LogJobToDB"/>
@@ -116,17 +115,11 @@
             <AppenderRef ref="LogCopyToFile"/>
             <AppenderRef ref="LogToConsole"/>
             <AppenderRef ref="LogJobToDB"/>
-            <AppenderRef ref="LogFileToDB">
-                <Filters>
-                    <RegexFilter
-                            regex="(?i).*\.(txt|log|csv|json|xml|html|htm|pdf|doc|docx|xls|xlsx|ppt|pptx|jpg|jpeg|png|bmp|tiff||zip|tar|gz|7z|rar|sql|sh|bat).*"
-                            onMatch="ACCEPT" onMismatch="DENY"/>
-                </Filters>
-            </AppenderRef>
+            <AppenderRef ref="LogFileToDB"/>
             <AppenderRef ref="LogDetailToDB"/>
         </Logger>
 
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="LogHelloToFile"/>
             <AppenderRef ref="LogToFile"/>
             <AppenderRef ref="LogCopyToFile"/>
