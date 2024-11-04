@@ -1,5 +1,6 @@
 package com.quartz;
 
+import com.quartz.config.ConfigProperties;
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
@@ -18,6 +19,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +39,8 @@ public class QuartzSchedulerApplication {
     private static SchedulerService scheduler;
 
     @Autowired
+    private ConfigProperties configProperties;
+
     public QuartzSchedulerApplication(SchedulerService scheduler) {
         QuartzSchedulerApplication.scheduler = scheduler;
     }
@@ -92,17 +96,15 @@ public class QuartzSchedulerApplication {
     }
 
     public static void main(String[] args) throws SchedulerException {
-        boolean readFromExternalProperties = false; //will get from properties file
-        if (readFromExternalProperties) {
+        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+
+        if (app.configProperties.isReadFromExternalProperties()) {
+            System.out.println("here");
             _jobsFromExternalProperties(args);
         } else {
-            // Run the application and get the application context
-            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-
-            // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
-            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-            app._scheduleFixedJobs(args);
-
+            System.out.println("there");
+            _scheduleFixedJobs(args);
             scheduler.getScheduledJobs();
         }
     }
@@ -110,11 +112,11 @@ public class QuartzSchedulerApplication {
     private static void _scheduleFixedJobs(String[] args) {
         final TriggerInfo info = new TriggerInfo();
 
-        info.setCronExp("0/5 0 8 * * ?"); // Run every min, at 5th second
+        info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
         info.setCallbackData("HelloWorldJob");
         scheduler.schedule(HelloWorldJob.class, info);
 
-        info.setCronExp("0 0 19 * * ?"); // Run at this specific time every day
+        info.setCronExp("0 38 15 * * ?"); // Run at this specific time every day
         info.setCallbackData("CopyJob");
         scheduler.schedule(CopyJob.class, info);
     }
@@ -123,7 +125,6 @@ public class QuartzSchedulerApplication {
         try {
             // Determine the directory of the JAR file
             String jarDir = getJarDir();
-
             // Specify the location for log4j2.xml
             String log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
 
@@ -134,7 +135,6 @@ public class QuartzSchedulerApplication {
             // Set the log4j configuration file system property
             System.setProperty("log4j.configurationFile", log4jConfigFilePath);
             System.setProperty("log4j2.debug", "true");
-
 
             ConfigurationSource source = new ConfigurationSource(new FileInputStream(log4jConfigFilePath));
             Configurator.initialize(null, source);
