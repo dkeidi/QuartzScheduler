@@ -2,7 +2,6 @@ package com.quartz.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.ThreadContext;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -18,19 +17,21 @@ public class StreamGobbler implements Runnable {
     private final String jobId;
     private final String jobName;
     private final String logFileName;
+    private final String instanceId;
 
-    public StreamGobbler(InputStream inputStream, Consumer<String> consumer, String jobId, String jobName, String logFileName) {
+    public StreamGobbler(InputStream inputStream, Consumer<String> consumer, String jobId, String jobName, String instanceId, String logFileName) {
         this.inputStream = inputStream;
         this.consumer = consumer;
         this.jobId = jobId;
         this.jobName = jobName;
+        this.instanceId = instanceId;
         this.logFileName = logFileName;
     }
 
     @Override
     public void run() {
         if (jobId != null) {
-            _initializeThreadContext(jobId, null);
+            CustomLogger.initializeThreadContext(jobId, jobName, "child", "Executing", logFileName, null);
         }
 
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -39,18 +40,9 @@ public class StreamGobbler implements Runnable {
                 consumer.accept(line);
             }
         } catch (Exception e) {
-            _initializeThreadContext(jobId, e);
+            CustomLogger.initializeThreadContext(jobId, jobName, "child", "Error", logFileName, e);
             LOG.error(e);
             throw new RuntimeException(e);
         }
-    }
-
-    private void _initializeThreadContext(String jobId, Exception e) {
-        ThreadContext.put("status", "Executing");
-        ThreadContext.put("jobId", jobId); // Set jobId in ThreadContext
-        ThreadContext.put("jobName", jobName);
-        ThreadContext.put("instanceId", "child");
-        ThreadContext.put("msg", String.valueOf(e));
-        ThreadContext.put("logFileName", logFileName);
     }
 }

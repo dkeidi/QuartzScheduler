@@ -12,8 +12,7 @@ public class CustomLogger {
     public static void initializeThreadContext(String jobId, String jobName, String instanceId, String jobStatus, String logFileName, Exception e) {
         ThreadContext.put("jobId", jobId);
         ThreadContext.put("jobName", jobName);
-        ThreadContext.put("startTime", getCurrentTime());
-        ThreadContext.put("endTime", getCurrentTime());
+        ThreadContext.put("logTime", getCurrentTime());
         ThreadContext.put("instanceId", instanceId);
         ThreadContext.put("status", jobStatus);
         ThreadContext.put("logFileName", logFileName);
