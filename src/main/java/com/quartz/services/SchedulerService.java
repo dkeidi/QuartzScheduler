@@ -1,7 +1,7 @@
 package com.quartz.services;
 
 import com.quartz.info.TriggerInfo;
-import com.quartz.util.TimerUtils;
+import com.quartz.util.SchedulerBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.*;
@@ -26,8 +26,8 @@ public class SchedulerService {
     }
 
     public <T extends Job> void schedule(final Class<T> jobClass, final TriggerInfo info) {
-        final JobDetail jobDetail = TimerUtils.buildJobDetail(jobClass, info);
-        final CronTrigger trigger = TimerUtils.buildTrigger(jobClass, info);
+        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
+        final CronTrigger trigger = SchedulerBuilder.buildTrigger(jobClass, info);
 
         try {
             LOG.info("{} job scheduled.", info.getCallbackData());
@@ -36,7 +36,6 @@ public class SchedulerService {
             if (scheduler.checkExists(jobDetail.getKey())){
                 scheduler.deleteJob(jobDetail.getKey());
             }
-
 
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
