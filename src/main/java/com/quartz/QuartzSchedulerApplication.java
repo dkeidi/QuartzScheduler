@@ -1,6 +1,5 @@
 package com.quartz;
 
-import com.quartz.config.ConfigProperties;
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
@@ -19,7 +18,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,7 +37,6 @@ public class QuartzSchedulerApplication {
     private static SchedulerService scheduler;
 
     @Autowired
-    private ConfigProperties configProperties;
 
     public QuartzSchedulerApplication(SchedulerService scheduler) {
         QuartzSchedulerApplication.scheduler = scheduler;
@@ -96,27 +93,28 @@ public class QuartzSchedulerApplication {
     }
 
     public static void main(String[] args) throws SchedulerException {
-        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
 
-        if (app.configProperties.isReadFromExternalProperties()) {
-            System.out.println("here");
+        if (false) {
             _jobsFromExternalProperties(args);
         } else {
-            System.out.println("there");
-            _scheduleFixedJobs(args);
+            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+
+            // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
+            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+            app._scheduleFixedJobs();
+
             scheduler.getScheduledJobs();
         }
     }
 
-    private static void _scheduleFixedJobs(String[] args) {
+    private void _scheduleFixedJobs() {
         final TriggerInfo info = new TriggerInfo();
 
         info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
         info.setCallbackData("HelloWorldJob");
         scheduler.schedule(HelloWorldJob.class, info);
 
-        info.setCronExp("0 38 15 * * ?"); // Run at this specific time every day
+        info.setCronExp("0 34 10 * * ?"); // Run at this specific time every day
         info.setCallbackData("CopyJob");
         scheduler.schedule(CopyJob.class, info);
     }
