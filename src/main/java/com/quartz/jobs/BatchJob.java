@@ -32,7 +32,7 @@ public class BatchJob extends QuartzJobBean {
         try {
             jobId = UUID.randomUUID().toString();  // Generate a UUID for job
             instanceId = scheduler.getSchedulerInstanceId();
-            LOG.info("Executing command: {}", command);
+//            LOG.info("Executing command: {}", command);
             JobExecutor.executeJob(command, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
         } catch (IOException | InterruptedException | SchedulerException e) {
             LOG.error("Exception occurred while executing the job", e);
