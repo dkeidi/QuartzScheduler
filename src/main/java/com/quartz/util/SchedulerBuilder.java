@@ -1,17 +1,17 @@
 package com.quartz.util;
 
 import com.quartz.info.TriggerInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-public final class TimerUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(TimerUtils.class);
+public final class SchedulerBuilder {
+    private static final Logger LOG = LogManager.getLogger(SchedulerBuilder.class);
 
-    private TimerUtils() {}
+    private SchedulerBuilder() {}
 
     public static JobDetail buildJobDetail(final Class jobClass, final TriggerInfo info) {
         final JobDataMap jobDataMap = new JobDataMap();
@@ -25,7 +25,7 @@ public final class TimerUtils {
     }
 
     public static CronTrigger buildTrigger(final Class jobClass, final TriggerInfo info) {
-        CronScheduleBuilder cron = cronSchedule(info.getCronExp());
+        CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
 
         return newTrigger()
                 .withIdentity(jobClass.getSimpleName())
