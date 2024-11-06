@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +26,7 @@ public class CopyJob implements Job {
     String LOG_FILENAME = JOB_NAME + "/" + CustomLogger.getCurrentDate() + ".log";
 
     @Override
-    public void execute(JobExecutionContext context) {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
 //        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
 //        TriggerInfo info = (TriggerInfo) jobDataMap.get(CopyJob.class.getSimpleName());
         Scheduler scheduler = context.getScheduler();
@@ -43,7 +44,8 @@ public class CopyJob implements Job {
         } catch (Exception e) {
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Error", LOG_FILENAME, e);
             LOG.error(e);
-            throw new RuntimeException(e);
+
+            throw new JobExecutionException(e);
         } finally {
             ThreadContext.clearAll();
         }
