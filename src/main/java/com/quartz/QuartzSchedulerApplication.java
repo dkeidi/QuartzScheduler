@@ -5,6 +5,8 @@ import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
 import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
+import com.quartz.tests.MisfireExample;
+import com.quartz.tests.JobExceptionExample;
 import com.quartz.util.JobPropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
 import org.apache.logging.log4j.LogManager;
@@ -92,29 +94,38 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    public static void main(String[] args) throws SchedulerException {
+    public static void main(String[] args) throws Exception {
 
-        if (false) {
-            _jobsFromExternalProperties(args);
-        } else {
-            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+//        if (false) {
+//            _jobsFromExternalProperties(args);
+//        } else {
+//            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+//
+//            // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
+//            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+//            app._scheduleFixedJobs();
+//
+//            scheduler.getScheduledJobs();
+//        }
 
-            // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
-            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-            app._scheduleFixedJobs();
 
-            scheduler.getScheduledJobs();
-        }
+        //misfire test
+//        MisfireExample example = new MisfireExample();
+//        example.run();
+
+        //exception test
+        JobExceptionExample example = new JobExceptionExample();
+        example.run();
     }
 
     private void _scheduleFixedJobs() {
         final TriggerInfo info = new TriggerInfo();
 
-        info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
+        info.setCronExp("0/10 3,4 18 * * ?"); // Run every min, at 5th second
         info.setCallbackData("HelloWorldJob");
         scheduler.schedule(HelloWorldJob.class, info);
 
-        info.setCronExp("0 34 10 * * ?"); // Run at this specific time every day
+        info.setCronExp("0 30 18 * * ?"); // Run at this specific time every day
         info.setCallbackData("CopyJob");
         scheduler.schedule(CopyJob.class, info);
     }
@@ -142,7 +153,8 @@ public class QuartzSchedulerApplication {
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties();
 
         } catch (IOException e) {
-            LOG.debug(e);
+            System.out.println(e);
+//            LOG.debug(e);
         }
     }
 
