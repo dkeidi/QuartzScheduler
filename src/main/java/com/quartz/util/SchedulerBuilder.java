@@ -19,7 +19,7 @@ public final class SchedulerBuilder {
 
         return JobBuilder
                 .newJob(jobClass)
-                .withIdentity(jobClass.getSimpleName())
+                .withIdentity(info.getJobName())
                 .setJobData(jobDataMap)
                 .build();
     }
@@ -28,7 +28,7 @@ public final class SchedulerBuilder {
         CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
 
         return newTrigger()
-                .withIdentity(jobClass.getSimpleName())
+                .withIdentity(info.getJobName())
                 .withSchedule(cron)
                 .build();
     }

@@ -28,10 +28,10 @@ public class BatchJob extends QuartzJobBean {
         String jobKey = context.getJobDetail().getKey().getName();
         Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
 
+        LOG.info("jobKey: ", jobKey);
         try {
             jobId = UUID.randomUUID().toString();  // Generate a UUID for job
             instanceId = scheduler.getSchedulerInstanceId();
-//            LOG.info("Executing command: {}", command);
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
             JobExecutor.executeJob(command, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);

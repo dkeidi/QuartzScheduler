@@ -9,6 +9,12 @@ public class TriggerInfo implements Serializable {
     private String callbackData;
     private String scriptLocation;
 
+    public String getJobName() { return jobName; }
+
+    public void setJobName(String jobName) { this.jobName = jobName; }
+
+    private String jobName;
+
     public String getScriptLocation() {
         return scriptLocation;
     }

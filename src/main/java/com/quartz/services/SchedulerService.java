@@ -25,9 +25,9 @@ public class SchedulerService {
         this.scheduler = scheduler;
     }
 
-    public <T extends Job> void schedule(final Class<T> jobClass, final TriggerInfo info) {
-        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
-        final CronTrigger trigger = SchedulerBuilder.buildTrigger(jobClass, info);
+    public <T extends Job> void schedule(final JobDetail jobDetail, final TriggerInfo info) {
+//        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
+        final CronTrigger trigger = SchedulerBuilder.buildTrigger(jobDetail.getJobClass(), info);
 
         try {
             LOG.info("{} job scheduled.", info.getCallbackData());
@@ -45,6 +45,9 @@ public class SchedulerService {
 
 
     public void getScheduledJobs() throws SchedulerException {
+
+        LOG.info("getScheduledJobs");
+
         for (String groupName : scheduler.getJobGroupNames()) {
 
             for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
@@ -56,8 +59,7 @@ public class SchedulerService {
                 List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
                 Date nextFireTime = triggers.get(0).getNextFireTime();
 
-                System.out.println("[jobName] : " + jobName + " [groupName] : "
-                        + jobGroup + " - " + nextFireTime);
+                LOG.info("[jobName] : " + jobName + " [groupName] : " + jobGroup + " - " + nextFireTime);
 
             }
         }

@@ -1,5 +1,6 @@
 package com.quartz;
 
+import com.quartz.config.ConfigProperties;
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
@@ -7,12 +8,12 @@ import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
 import com.quartz.util.JobPropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,22 +39,9 @@ public class QuartzSchedulerApplication {
 
     @Autowired
 
-    public QuartzSchedulerApplication(SchedulerService scheduler) {
-        QuartzSchedulerApplication.scheduler = scheduler;
-    }
+    public QuartzSchedulerApplication(SchedulerService scheduler) {QuartzSchedulerApplication.scheduler = scheduler;}
 
     //for RAMJobStore jobstore
-//    public static String getJarDir() {
-//        try {
-//            // Get the location of the JAR file
-//            File jarFile = new File(QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-//            // Get the parent directory of the JAR file
-//            return jarFile.getParentFile().getAbsolutePath();
-//        } catch (URISyntaxException e) {
-//            throw new RuntimeException("Failed to determine the JAR file directory.", e);
-//        }
-//    }
-//
     public static String getJarDir() {
         try {
             // Retrieve the path as a URL and convert it to a URI
@@ -93,33 +81,52 @@ public class QuartzSchedulerApplication {
     }
 
     public static void main(String[] args) throws SchedulerException {
+        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+        ConfigProperties configProperties = context.getBean(ConfigProperties.class);
+        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
 
-        if (false) {
-            _jobsFromExternalProperties(args);
+        if (configProperties.isReadFromExternalProperties()) {
+            _jobsFromExternalProperties(args, app, scheduler);
         } else {
-            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-
-            // Retrieve the QuartzSchedulerApplication bean and call scheduleFixedJobs
-            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
             app._scheduleFixedJobs();
-
             scheduler.getScheduledJobs();
         }
     }
 
     private void _scheduleFixedJobs() {
-        final TriggerInfo info = new TriggerInfo();
+//        info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
+//        info.setCallbackData("HelloWorldJob");
+//        scheduler.schedule(HelloWorldJob.class, info);
+//
+//        info.setCronExp("0 34 10 * * ?"); // Run at this specific time every day
+//        info.setCallbackData("CopyJob");
+//        scheduler.schedule(CopyJob.class, info);
 
-        info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
-        info.setCallbackData("HelloWorldJob");
-        scheduler.schedule(HelloWorldJob.class, info);
+        JobDetail jobDetail = JobBuilder.newJob(HelloWorldJob.class)
+                .withIdentity("HelloWorldJob")
+                .build();
 
-        info.setCronExp("0 34 10 * * ?"); // Run at this specific time every day
-        info.setCallbackData("CopyJob");
-        scheduler.schedule(CopyJob.class, info);
+        TriggerInfo info1 = new TriggerInfo();
+        info1.setCronExp("0/5 8 19 * * ?");
+        info1.setCallbackData("HelloWorldJob");
+        info1.setJobName("HelloWorldJob");
+
+        scheduler.schedule(jobDetail, info1);
+
+
+        jobDetail = JobBuilder.newJob(CopyJob.class)
+                .withIdentity("CopyJob")
+                .build();
+
+        TriggerInfo info2 = new TriggerInfo();
+        info2.setCronExp("0 8 19 * * ?");
+        info2.setCallbackData("CopyJob");
+        info2.setJobName("CopyJob");
+
+        scheduler.schedule(jobDetail, info2);
     }
 
-    private static void _jobsFromExternalProperties(String[] args) {
+    private static void _jobsFromExternalProperties(String[] args, QuartzSchedulerApplication app, SchedulerService scheduler) {
         try {
             // Determine the directory of the JAR file
             String jarDir = getJarDir();
@@ -139,21 +146,18 @@ public class QuartzSchedulerApplication {
 
             LOG = LogManager.getLogger(QuartzSchedulerApplication.class);
 
-            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties();
+            app._scheduleJobsFromProperties(scheduler);
 
         } catch (IOException e) {
             LOG.debug(e);
         }
     }
 
-    private void _scheduleJobsFromProperties() {
+    private void _scheduleJobsFromProperties(SchedulerService scheduler) {
         try (InputStream externalInput = Files.newInputStream(Paths.get("job.properties"))) {
 
             Properties prop = new Properties();
             prop.load(externalInput);
-
-            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            scheduler.start();
 
             for (String jobName : prop.stringPropertyNames()) {
                 if (jobName.endsWith(".cron")) {
@@ -168,24 +172,25 @@ public class QuartzSchedulerApplication {
                 }
             }
 
+            scheduler.getScheduledJobs();
             LOG.info("Scheduled all jobs.");
         } catch (IOException | SchedulerException ex) {
             LOG.error("Error scheduling jobs", ex);
         }
     }
 
-    private void _scheduleJob(Scheduler scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
+    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
                 .usingJobData("folder", jobKey)
                 .build();
 
-        Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(jobKey + "_trigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule(cronExp))
-                .build();
+        TriggerInfo info = new TriggerInfo();
+        info.setCronExp(cronExp);
+        info.setCallbackData(jobKey);
+        info.setJobName(jobKey);
 
-        scheduler.scheduleJob(jobDetail, trigger);
+        scheduler.schedule(jobDetail, info);
     }
 }
