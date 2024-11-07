@@ -25,7 +25,7 @@ public final class SchedulerBuilder {
     }
 
     public static CronTrigger buildTrigger(final Class jobClass, final TriggerInfo info) {
-        CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
+        CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionDoNothing();
 
         return newTrigger()
                 .withIdentity(jobClass.getSimpleName())
