@@ -1,6 +1,5 @@
 package com.quartz;
 
-import com.quartz.config.ConfigProperties;
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
@@ -8,12 +7,13 @@ import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
 import com.quartz.util.JobPropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.quartz.*;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -81,13 +81,28 @@ public class QuartzSchedulerApplication {
     }
 
     public static void main(String[] args) throws SchedulerException {
-        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-        ConfigProperties configProperties = context.getBean(ConfigProperties.class);
-        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+//        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+//        ConfigProperties configProperties = context.getBean(ConfigProperties.class);
+//        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+//
+//        System.out.println("HERE: " + configProperties.isReadFromExternalProperties());
+//        if (configProperties.isReadFromExternalProperties()) {
+//            System.out.println("1");
+//            _jobsFromExternalProperties(args, app, scheduler);
+//        } else {
+//            System.out.println("2");
+//            app._scheduleFixedJobs();
+//            scheduler.getScheduledJobs();
+//        }
 
-        if (configProperties.isReadFromExternalProperties()) {
-            _jobsFromExternalProperties(args, app, scheduler);
+        if (true) {
+            System.out.println("1");
+            _jobsFromExternalProperties(args);
         } else {
+            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+
+            System.out.println("2");
             app._scheduleFixedJobs();
             scheduler.getScheduledJobs();
         }
@@ -126,7 +141,7 @@ public class QuartzSchedulerApplication {
         scheduler.schedule(jobDetail, info2);
     }
 
-    private static void _jobsFromExternalProperties(String[] args, QuartzSchedulerApplication app, SchedulerService scheduler) {
+    private static void _jobsFromExternalProperties(String[] args) {
         try {
             // Determine the directory of the JAR file
             String jarDir = getJarDir();
@@ -146,7 +161,9 @@ public class QuartzSchedulerApplication {
 
             LOG = LogManager.getLogger(QuartzSchedulerApplication.class);
 
-            app._scheduleJobsFromProperties(scheduler);
+            // .run has to come after Configurator for LOG4J2 to work
+            SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
+//            app._scheduleJobsFromProperties(scheduler);
 
         } catch (IOException e) {
             LOG.debug(e);

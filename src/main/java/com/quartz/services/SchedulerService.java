@@ -43,6 +43,23 @@ public class SchedulerService {
         }
     }
 
+    public <T extends Job> void scheduleManual(final Class<T> jobClass, final TriggerInfo info) {
+        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
+        final CronTrigger trigger = SchedulerBuilder.buildTrigger(jobClass, info);
+
+        try {
+            LOG.info("{} job scheduled.", info.getCallbackData());
+            LOG.info("Job key is {}.", jobDetail.getKey());
+
+            if (scheduler.checkExists(jobDetail.getKey())){
+                scheduler.deleteJob(jobDetail.getKey());
+            }
+
+            scheduler.scheduleJob(jobDetail, trigger);
+        } catch (SchedulerException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
 
     public void getScheduledJobs() throws SchedulerException {
 
