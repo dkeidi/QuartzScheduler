@@ -37,6 +37,19 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+
+tasks.register('copyFilesToLibs', Copy) {
+	from 'src/main/resources'
+	include '**/*.properties'
+	into 'build/libs'
+	eachFile { file ->
+		file.path = file.name// Copy files without their directory structure
+	}
+	includeEmptyDirs = false // Avoid creating empty directories in the destination
+}
+
+build.dependsOn copyFilesToLibs
+
 configurations {
 	configureEach {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
