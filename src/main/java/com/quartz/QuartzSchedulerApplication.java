@@ -5,7 +5,7 @@ import com.quartz.jobs.BatchJob;
 import com.quartz.jobs.CopyJob;
 import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
-import com.quartz.util.JobPropertiesLoader;
+import com.quartz.util.PropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Properties;
 
 @SpringBootApplication
@@ -36,12 +37,42 @@ public class QuartzSchedulerApplication {
 
     private static Logger LOG;
     private static SchedulerService scheduler;
+    public static Properties jobProperties;
+    public static Properties appProperties;
+    public static String log4jConfigFilePath;
 
     @Autowired
 
     public QuartzSchedulerApplication(SchedulerService scheduler) {QuartzSchedulerApplication.scheduler = scheduler;}
 
-    //for RAMJobStore jobstore
+    public static void main(String[] args) throws SchedulerException, IOException {
+        loadProperties();
+
+        if (Objects.equals(appProperties.getProperty("app.readFromExternalProperties"), "true")) {
+            System.out.println("WORKS!");
+            _jobsFromExternalProperties(args);
+        } else {
+            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
+            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
+
+            System.out.println("2");
+            app._scheduleFixedJobs();
+            scheduler.getScheduledJobs();
+        }
+
+    }
+
+    public static void loadProperties() throws IOException {
+        // Determine the directory of the JAR file
+        String jarDir = getJarDir();
+        // Specify the location for log4j2.xml
+        log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
+
+        // Generate log4j2.xml based on job.properties and app.properties
+        jobProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "job.properties");
+        appProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "application.properties");
+    }
+
     public static String getJarDir() {
         try {
             // Retrieve the path as a URL and convert it to a URI
@@ -80,34 +111,6 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    public static void main(String[] args) throws SchedulerException {
-//        ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-//        ConfigProperties configProperties = context.getBean(ConfigProperties.class);
-//        QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-//
-//        System.out.println("HERE: " + configProperties.isReadFromExternalProperties());
-//        if (configProperties.isReadFromExternalProperties()) {
-//            System.out.println("1");
-//            _jobsFromExternalProperties(args, app, scheduler);
-//        } else {
-//            System.out.println("2");
-//            app._scheduleFixedJobs();
-//            scheduler.getScheduledJobs();
-//        }
-
-        if (true) {
-            System.out.println("1");
-            _jobsFromExternalProperties(args);
-        } else {
-            ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
-            QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-
-            System.out.println("2");
-            app._scheduleFixedJobs();
-            scheduler.getScheduledJobs();
-        }
-    }
-
     private void _scheduleFixedJobs() {
 //        info.setCronExp("0/5 38 15 * * ?"); // Run every min, at 5th second
 //        info.setCallbackData("HelloWorldJob");
@@ -143,14 +146,8 @@ public class QuartzSchedulerApplication {
 
     private static void _jobsFromExternalProperties(String[] args) {
         try {
-            // Determine the directory of the JAR file
-            String jarDir = getJarDir();
-            // Specify the location for log4j2.xml
-            String log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
 
-            // Generate log4j2.xml based on job.properties
-            Properties jobProperties = JobPropertiesLoader.loadJobProperties(jarDir + File.separator + "job.properties");
-            Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, log4jConfigFilePath);
+            Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, appProperties, log4jConfigFilePath, true);
 
             // Set the log4j configuration file system property
             System.setProperty("log4j.configurationFile", log4jConfigFilePath);

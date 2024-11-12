@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-public class JobPropertiesLoader {
-    public static Properties loadJobProperties(String filePath) throws IOException {
+public class PropertiesLoader {
+    public static Properties loadProperties(String filePath) throws IOException {
         Properties properties = new Properties();
         InputStream inStream = Files.newInputStream(Paths.get(filePath));
         properties.load(inStream);
