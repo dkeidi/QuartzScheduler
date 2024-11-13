@@ -48,14 +48,11 @@ public class QuartzSchedulerApplication {
     public static void main(String[] args) throws SchedulerException, IOException {
         loadProperties();
 
-        if (Objects.equals(appProperties.getProperty("app.readFromExternalProperties"), "true")) {
-            System.out.println("WORKS!");
+        if (Boolean.parseBoolean(appProperties.getProperty("app.readFromExternalProperties"))) {
             _jobsFromExternalProperties(args);
         } else {
             ApplicationContext context = SpringApplication.run(QuartzSchedulerApplication.class, args);
             QuartzSchedulerApplication app = context.getBean(QuartzSchedulerApplication.class);
-
-            System.out.println("2");
             app._scheduleFixedJobs();
             scheduler.getScheduledJobs();
         }
@@ -147,7 +144,7 @@ public class QuartzSchedulerApplication {
     private static void _jobsFromExternalProperties(String[] args) {
         try {
 
-            Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, appProperties, log4jConfigFilePath, true);
+            Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, appProperties, log4jConfigFilePath, Boolean.parseBoolean(appProperties.getProperty("app.isJDBC")));
 
             // Set the log4j configuration file system property
             System.setProperty("log4j.configurationFile", log4jConfigFilePath);
@@ -160,7 +157,6 @@ public class QuartzSchedulerApplication {
 
             // .run has to come after Configurator for LOG4J2 to work
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
-//            app._scheduleJobsFromProperties(scheduler);
 
         } catch (IOException e) {
             LOG.debug(e);
@@ -173,8 +169,11 @@ public class QuartzSchedulerApplication {
             Properties prop = new Properties();
             prop.load(externalInput);
 
+            String masterCommandValue = prop.getProperty("master.map_drive.command");
+
+
             for (String jobName : prop.stringPropertyNames()) {
-                if (jobName.endsWith(".cron")) {
+                if (jobName.startsWith("job.") && jobName.endsWith(".cron")) {
                     String jobKey = jobName.substring(4, jobName.length() - 5); // Remove the ".cron" suffix
                     String cronExp = prop.getProperty(jobName);
                     String commandKey = "job." + jobKey + ".command";
@@ -182,7 +181,7 @@ public class QuartzSchedulerApplication {
 
                     LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
 
-                    _scheduleJob(scheduler, jobKey, cronExp, commandValue);
+                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue);
                 }
             }
 
@@ -193,10 +192,11 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue) throws SchedulerException {
+    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
+                .usingJobData("master_command", masterCommandValue)
                 .usingJobData("folder", jobKey)
                 .build();
 

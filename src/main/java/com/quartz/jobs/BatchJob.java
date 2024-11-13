@@ -24,7 +24,8 @@ public class BatchJob extends QuartzJobBean {
         String instanceId = "";
         JOB_NAME = context.getJobDetail().getKey().getName();
 
-        String command = context.getJobDetail().getJobDataMap().getString("command");
+        String scriptLocation = context.getJobDetail().getJobDataMap().getString("command");
+        String masterScriptLocation = context.getJobDetail().getJobDataMap().getString("master_command");
         String jobKey = context.getJobDetail().getKey().getName();
         Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
 
@@ -34,7 +35,7 @@ public class BatchJob extends QuartzJobBean {
             instanceId = scheduler.getSchedulerInstanceId();
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
-            JobExecutor.executeJob(command, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
+            JobExecutor.executeJob(scriptLocation, masterScriptLocation, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
         } catch (IOException | InterruptedException | SchedulerException e) {
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Error", LOG_FILENAME, e);
             LOG.error(e);

@@ -22,6 +22,7 @@ public class CopyJob implements Job {
 
     // Constants
     private static final String COMMAND = "C:\\Users\\keidi.tay.chuan\\Documents\\MyQuartzTest\\batch_files\\copy_file.bat";
+    private static final String MASTER_COMMAND = "C:\\Users\\keidi.tay.chuan\\Documents\\MyQuartzTest\\batch_files\\map_drive.bat";
     private static final String JOB_NAME = "CopyJob";
     String LOG_FILENAME = JOB_NAME + "/" + CustomLogger.getCurrentDate() + ".log";
 
@@ -54,7 +55,7 @@ public class CopyJob implements Job {
     private void _executeJob(String jobId, JobExecutionContext context, String instanceId) throws IOException, InterruptedException {
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
-        JobExecutor.executeJob(COMMAND, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
+        JobExecutor.executeJob(COMMAND, MASTER_COMMAND, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
 
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executed", LOG_FILENAME, null);
         LOG.info("Job completed successfully");
