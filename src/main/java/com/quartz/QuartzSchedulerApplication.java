@@ -170,6 +170,7 @@ public class QuartzSchedulerApplication {
             prop.load(externalInput);
 
             String masterCommandValue = prop.getProperty("master.map_drive.command");
+            Boolean isNetworkLocation = Boolean.parseBoolean(prop.getProperty("master.is_network_location"));
 
 
             for (String jobName : prop.stringPropertyNames()) {
@@ -181,7 +182,7 @@ public class QuartzSchedulerApplication {
 
                     LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
 
-                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue);
+                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue, isNetworkLocation);
                 }
             }
 
@@ -192,11 +193,12 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue) throws SchedulerException {
+    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue, Boolean isNetworkLocation) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
                 .usingJobData("master_command", masterCommandValue)
+                .usingJobData("is_network_location", isNetworkLocation)
                 .usingJobData("folder", jobKey)
                 .build();
 

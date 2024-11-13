@@ -7,11 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class JobExecutor {
-    public static void executeJob(String scriptLocation, String masterScriptLocation, Logger LOG, String jobId, String jobName, String instanceId, String logFileName) throws IOException, InterruptedException {
+    public static void executeJob(String scriptLocation, String masterScriptLocation, Boolean isNetworkLocation, Logger LOG, String jobId, String jobName, String instanceId, String logFileName) throws IOException, InterruptedException {
         LOG.info("Starting job with command: {}", jobName);
 
         // Run master script if the job script is on a network location
-        if (scriptLocation.startsWith("Z:")) {
+        if (isNetworkLocation) {
             executeScript(masterScriptLocation, LOG, jobId, jobName, instanceId, logFileName);
         }
 
