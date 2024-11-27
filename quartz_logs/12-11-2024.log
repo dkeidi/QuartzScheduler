@@ -1,0 +1,195 @@
+[INFO ] 12-11-2024 18:31:39.823 [Test worker] AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.quartz.QuartzSchedulerApplicationTests]: QuartzSchedulerApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+[INFO ] 12-11-2024 18:31:39.971 [Test worker] SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.quartz.QuartzSchedulerApplication for test class com.quartz.QuartzSchedulerApplicationTests
+[INFO ] 12-11-2024 18:31:40.489 [Test worker] QuartzSchedulerApplicationTests - Starting QuartzSchedulerApplicationTests using Java 17.0.10 with PID 26764 (started by keidi.tay.chuan in C:\Users\keidi.tay.chuan\Documents\QuartzScheduler)
+[INFO ] 12-11-2024 18:31:40.497 [Test worker] QuartzSchedulerApplicationTests - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 12-11-2024 18:31:41.814 [Test worker] StdSchedulerFactory - Using default implementation for ThreadExecutor
+[INFO ] 12-11-2024 18:31:41.831 [Test worker] SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+[INFO ] 12-11-2024 18:31:41.831 [Test worker] QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+[INFO ] 12-11-2024 18:31:41.845 [Test worker] HikariDataSource - HikariPool-1 - Starting...
+[INFO ] 12-11-2024 18:31:42.202 [Test worker] HikariPool - HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: f00ddca4-bd84-47dd-93e3-2dacdc89a061
+[INFO ] 12-11-2024 18:31:42.205 [Test worker] HikariDataSource - HikariPool-1 - Start completed.
+[INFO ] 12-11-2024 18:31:42.218 [Test worker] LocalDataSourceJobStore - Detected usage of MSSQLDelegate class - defaulting 'selectWithLockSQL' to 'SELECT * FROM {0}LOCKS WITH (UPDLOCK,ROWLOCK) WHERE SCHED_NAME = {1} AND LOCK_NAME = ?'.
+[INFO ] 12-11-2024 18:31:42.219 [Test worker] LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+[INFO ] 12-11-2024 18:31:42.222 [Test worker] LocalDataSourceJobStore - JobStoreCMT initialized.
+[INFO ] 12-11-2024 18:31:42.223 [Test worker] QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+[INFO ] 12-11-2024 18:31:42.224 [Test worker] StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+[INFO ] 12-11-2024 18:31:42.224 [Test worker] StdSchedulerFactory - Quartz scheduler version: 2.3.2
+[INFO ] 12-11-2024 18:31:42.225 [Test worker] QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@524f5ea5
+[INFO ] 12-11-2024 18:31:42.922 [Test worker] SchedulerFactoryBean - Starting Quartz Scheduler now
+[INFO ] 12-11-2024 18:31:42.987 [Test worker] LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+[INFO ] 12-11-2024 18:31:42.997 [Test worker] LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+[INFO ] 12-11-2024 18:31:42.998 [Test worker] LocalDataSourceJobStore - Recovery complete.
+[INFO ] 12-11-2024 18:31:43.001 [Test worker] LocalDataSourceJobStore - Removed 0 'complete' triggers.
+[INFO ] 12-11-2024 18:31:43.003 [Test worker] LocalDataSourceJobStore - Removed 0 stale fired job entries.
+[INFO ] 12-11-2024 18:31:43.007 [Test worker] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+[INFO ] 12-11-2024 18:31:43.023 [Test worker] QuartzSchedulerApplicationTests - Started QuartzSchedulerApplicationTests in 2.854 seconds (process running for 4.748)
+[INFO ] 12-11-2024 18:31:44.755 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:31:44.757 [SpringApplicationShutdownHook] SchedulerFactoryBean - Shutting down Quartz Scheduler
+[INFO ] 12-11-2024 18:31:44.758 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+[INFO ] 12-11-2024 18:31:44.758 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:31:44.759 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+[INFO ] 12-11-2024 18:31:44.760 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown initiated...
+[INFO ] 12-11-2024 18:31:44.766 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown completed.
+[INFO ] 12-11-2024 18:37:11.258 [Test worker] AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.quartz.QuartzSchedulerApplicationTests]: QuartzSchedulerApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+[INFO ] 12-11-2024 18:37:11.364 [Test worker] SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.quartz.QuartzSchedulerApplication for test class com.quartz.QuartzSchedulerApplicationTests
+[INFO ] 12-11-2024 18:37:11.814 [Test worker] QuartzSchedulerApplicationTests - Starting QuartzSchedulerApplicationTests using Java 17.0.10 with PID 31568 (started by keidi.tay.chuan in C:\Users\keidi.tay.chuan\Documents\QuartzScheduler)
+[INFO ] 12-11-2024 18:37:11.820 [Test worker] QuartzSchedulerApplicationTests - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 12-11-2024 18:37:13.170 [Test worker] StdSchedulerFactory - Using default implementation for ThreadExecutor
+[INFO ] 12-11-2024 18:37:13.198 [Test worker] SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+[INFO ] 12-11-2024 18:37:13.199 [Test worker] QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+[INFO ] 12-11-2024 18:37:13.217 [Test worker] HikariDataSource - HikariPool-1 - Starting...
+[INFO ] 12-11-2024 18:37:13.512 [Test worker] HikariPool - HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 54bcda7d-64bb-4313-92ee-2686ea971eb6
+[INFO ] 12-11-2024 18:37:13.515 [Test worker] HikariDataSource - HikariPool-1 - Start completed.
+[INFO ] 12-11-2024 18:37:13.534 [Test worker] LocalDataSourceJobStore - Detected usage of MSSQLDelegate class - defaulting 'selectWithLockSQL' to 'SELECT * FROM {0}LOCKS WITH (UPDLOCK,ROWLOCK) WHERE SCHED_NAME = {1} AND LOCK_NAME = ?'.
+[INFO ] 12-11-2024 18:37:13.535 [Test worker] LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+[INFO ] 12-11-2024 18:37:13.538 [Test worker] LocalDataSourceJobStore - JobStoreCMT initialized.
+[INFO ] 12-11-2024 18:37:13.540 [Test worker] QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+[INFO ] 12-11-2024 18:37:13.540 [Test worker] StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+[INFO ] 12-11-2024 18:37:13.542 [Test worker] StdSchedulerFactory - Quartz scheduler version: 2.3.2
+[INFO ] 12-11-2024 18:37:13.542 [Test worker] QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@4a660b34
+[INFO ] 12-11-2024 18:37:14.409 [Test worker] SchedulerFactoryBean - Starting Quartz Scheduler now
+[INFO ] 12-11-2024 18:37:14.496 [Test worker] LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+[INFO ] 12-11-2024 18:37:14.514 [Test worker] LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+[INFO ] 12-11-2024 18:37:14.515 [Test worker] LocalDataSourceJobStore - Recovery complete.
+[INFO ] 12-11-2024 18:37:14.519 [Test worker] LocalDataSourceJobStore - Removed 0 'complete' triggers.
+[INFO ] 12-11-2024 18:37:14.523 [Test worker] LocalDataSourceJobStore - Removed 0 stale fired job entries.
+[INFO ] 12-11-2024 18:37:14.528 [Test worker] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+[INFO ] 12-11-2024 18:37:14.543 [Test worker] QuartzSchedulerApplicationTests - Started QuartzSchedulerApplicationTests in 3.022 seconds (process running for 4.789)
+[INFO ] 12-11-2024 18:37:16.426 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:37:16.429 [SpringApplicationShutdownHook] SchedulerFactoryBean - Shutting down Quartz Scheduler
+[INFO ] 12-11-2024 18:37:16.429 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+[INFO ] 12-11-2024 18:37:16.429 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:37:16.430 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+[INFO ] 12-11-2024 18:37:16.431 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown initiated...
+[INFO ] 12-11-2024 18:37:16.438 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown completed.
+[INFO ] 12-11-2024 18:40:25.366 [Test worker] AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.quartz.QuartzSchedulerApplicationTests]: QuartzSchedulerApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+[INFO ] 12-11-2024 18:40:25.470 [Test worker] SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.quartz.QuartzSchedulerApplication for test class com.quartz.QuartzSchedulerApplicationTests
+[INFO ] 12-11-2024 18:40:25.920 [Test worker] QuartzSchedulerApplicationTests - Starting QuartzSchedulerApplicationTests using Java 17.0.10 with PID 25200 (started by keidi.tay.chuan in C:\Users\keidi.tay.chuan\Documents\QuartzScheduler)
+[INFO ] 12-11-2024 18:40:25.927 [Test worker] QuartzSchedulerApplicationTests - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 12-11-2024 18:40:27.174 [Test worker] StdSchedulerFactory - Using default implementation for ThreadExecutor
+[INFO ] 12-11-2024 18:40:27.193 [Test worker] SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+[INFO ] 12-11-2024 18:40:27.194 [Test worker] QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+[INFO ] 12-11-2024 18:40:27.209 [Test worker] HikariDataSource - HikariPool-1 - Starting...
+[INFO ] 12-11-2024 18:40:27.458 [Test worker] HikariPool - HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 6802046f-a0a3-49cb-9454-a9af7898e3ef
+[INFO ] 12-11-2024 18:40:27.460 [Test worker] HikariDataSource - HikariPool-1 - Start completed.
+[INFO ] 12-11-2024 18:40:27.475 [Test worker] LocalDataSourceJobStore - Detected usage of MSSQLDelegate class - defaulting 'selectWithLockSQL' to 'SELECT * FROM {0}LOCKS WITH (UPDLOCK,ROWLOCK) WHERE SCHED_NAME = {1} AND LOCK_NAME = ?'.
+[INFO ] 12-11-2024 18:40:27.476 [Test worker] LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+[INFO ] 12-11-2024 18:40:27.479 [Test worker] LocalDataSourceJobStore - JobStoreCMT initialized.
+[INFO ] 12-11-2024 18:40:27.481 [Test worker] QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+[INFO ] 12-11-2024 18:40:27.482 [Test worker] StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+[INFO ] 12-11-2024 18:40:27.483 [Test worker] StdSchedulerFactory - Quartz scheduler version: 2.3.2
+[INFO ] 12-11-2024 18:40:27.483 [Test worker] QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@919086
+[INFO ] 12-11-2024 18:40:28.196 [Test worker] SchedulerFactoryBean - Starting Quartz Scheduler now
+[INFO ] 12-11-2024 18:40:28.258 [Test worker] LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+[INFO ] 12-11-2024 18:40:28.269 [Test worker] LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+[INFO ] 12-11-2024 18:40:28.270 [Test worker] LocalDataSourceJobStore - Recovery complete.
+[INFO ] 12-11-2024 18:40:28.274 [Test worker] LocalDataSourceJobStore - Removed 0 'complete' triggers.
+[INFO ] 12-11-2024 18:40:28.277 [Test worker] LocalDataSourceJobStore - Removed 0 stale fired job entries.
+[INFO ] 12-11-2024 18:40:28.281 [Test worker] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+[INFO ] 12-11-2024 18:40:28.295 [Test worker] QuartzSchedulerApplicationTests - Started QuartzSchedulerApplicationTests in 2.667 seconds (process running for 4.545)
+[INFO ] 12-11-2024 18:40:29.694 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:40:29.695 [SpringApplicationShutdownHook] SchedulerFactoryBean - Shutting down Quartz Scheduler
+[INFO ] 12-11-2024 18:40:29.696 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+[INFO ] 12-11-2024 18:40:29.696 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:40:29.697 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+[INFO ] 12-11-2024 18:40:29.697 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown initiated...
+[INFO ] 12-11-2024 18:40:29.705 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown completed.
+[INFO ] 12-11-2024 18:43:18.869 [Test worker] AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.quartz.QuartzSchedulerApplicationTests]: QuartzSchedulerApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+[INFO ] 12-11-2024 18:43:18.968 [Test worker] SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.quartz.QuartzSchedulerApplication for test class com.quartz.QuartzSchedulerApplicationTests
+[INFO ] 12-11-2024 18:43:19.417 [Test worker] QuartzSchedulerApplicationTests - Starting QuartzSchedulerApplicationTests using Java 17.0.10 with PID 23348 (started by keidi.tay.chuan in C:\Users\keidi.tay.chuan\Documents\QuartzScheduler)
+[INFO ] 12-11-2024 18:43:19.422 [Test worker] QuartzSchedulerApplicationTests - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 12-11-2024 18:43:20.664 [Test worker] StdSchedulerFactory - Using default implementation for ThreadExecutor
+[INFO ] 12-11-2024 18:43:20.683 [Test worker] SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+[INFO ] 12-11-2024 18:43:20.684 [Test worker] QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+[INFO ] 12-11-2024 18:43:20.697 [Test worker] HikariDataSource - HikariPool-1 - Starting...
+[INFO ] 12-11-2024 18:43:20.953 [Test worker] HikariPool - HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 58b60364-d987-4376-8abf-9859b3c27b3c
+[INFO ] 12-11-2024 18:43:20.956 [Test worker] HikariDataSource - HikariPool-1 - Start completed.
+[INFO ] 12-11-2024 18:43:20.973 [Test worker] LocalDataSourceJobStore - Detected usage of MSSQLDelegate class - defaulting 'selectWithLockSQL' to 'SELECT * FROM {0}LOCKS WITH (UPDLOCK,ROWLOCK) WHERE SCHED_NAME = {1} AND LOCK_NAME = ?'.
+[INFO ] 12-11-2024 18:43:20.974 [Test worker] LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+[INFO ] 12-11-2024 18:43:20.979 [Test worker] LocalDataSourceJobStore - JobStoreCMT initialized.
+[INFO ] 12-11-2024 18:43:20.980 [Test worker] QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+[INFO ] 12-11-2024 18:43:20.981 [Test worker] StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+[INFO ] 12-11-2024 18:43:20.982 [Test worker] StdSchedulerFactory - Quartz scheduler version: 2.3.2
+[INFO ] 12-11-2024 18:43:20.982 [Test worker] QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@524f5ea5
+[INFO ] 12-11-2024 18:43:21.678 [Test worker] SchedulerFactoryBean - Starting Quartz Scheduler now
+[INFO ] 12-11-2024 18:43:21.730 [Test worker] LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+[INFO ] 12-11-2024 18:43:21.743 [Test worker] LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+[INFO ] 12-11-2024 18:43:21.744 [Test worker] LocalDataSourceJobStore - Recovery complete.
+[INFO ] 12-11-2024 18:43:21.747 [Test worker] LocalDataSourceJobStore - Removed 0 'complete' triggers.
+[INFO ] 12-11-2024 18:43:21.750 [Test worker] LocalDataSourceJobStore - Removed 0 stale fired job entries.
+[INFO ] 12-11-2024 18:43:21.755 [Test worker] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+[INFO ] 12-11-2024 18:43:21.767 [Test worker] QuartzSchedulerApplicationTests - Started QuartzSchedulerApplicationTests in 2.645 seconds (process running for 4.364)
+[INFO ] 12-11-2024 18:43:23.035 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:43:23.036 [SpringApplicationShutdownHook] SchedulerFactoryBean - Shutting down Quartz Scheduler
+[INFO ] 12-11-2024 18:43:23.037 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+[INFO ] 12-11-2024 18:43:23.037 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:43:23.037 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+[INFO ] 12-11-2024 18:43:23.038 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown initiated...
+[INFO ] 12-11-2024 18:43:23.044 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown completed.
+[INFO ] 12-11-2024 18:44:55.285 [Test worker] AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.quartz.QuartzSchedulerApplicationTests]: QuartzSchedulerApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+[INFO ] 12-11-2024 18:44:55.426 [Test worker] SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.quartz.QuartzSchedulerApplication for test class com.quartz.QuartzSchedulerApplicationTests
+[INFO ] 12-11-2024 18:44:55.900 [Test worker] QuartzSchedulerApplicationTests - Starting QuartzSchedulerApplicationTests using Java 17.0.10 with PID 27692 (started by keidi.tay.chuan in C:\Users\keidi.tay.chuan\Documents\QuartzScheduler)
+[INFO ] 12-11-2024 18:44:55.908 [Test worker] QuartzSchedulerApplicationTests - No active profile set, falling back to 1 default profile: "default"
+[INFO ] 12-11-2024 18:44:57.218 [Test worker] StdSchedulerFactory - Using default implementation for ThreadExecutor
+[INFO ] 12-11-2024 18:44:57.242 [Test worker] SchedulerSignalerImpl - Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+[INFO ] 12-11-2024 18:44:57.243 [Test worker] QuartzScheduler - Quartz Scheduler v.2.3.2 created.
+[INFO ] 12-11-2024 18:44:57.259 [Test worker] HikariDataSource - HikariPool-1 - Starting...
+[INFO ] 12-11-2024 18:44:57.571 [Test worker] HikariPool - HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 1f5b11f8-c021-4074-93ac-f207b8cf15ed
+[INFO ] 12-11-2024 18:44:57.575 [Test worker] HikariDataSource - HikariPool-1 - Start completed.
+[INFO ] 12-11-2024 18:44:57.589 [Test worker] LocalDataSourceJobStore - Detected usage of MSSQLDelegate class - defaulting 'selectWithLockSQL' to 'SELECT * FROM {0}LOCKS WITH (UPDLOCK,ROWLOCK) WHERE SCHED_NAME = {1} AND LOCK_NAME = ?'.
+[INFO ] 12-11-2024 18:44:57.590 [Test worker] LocalDataSourceJobStore - Using db table-based data access locking (synchronization).
+[INFO ] 12-11-2024 18:44:57.593 [Test worker] LocalDataSourceJobStore - JobStoreCMT initialized.
+[INFO ] 12-11-2024 18:44:57.594 [Test worker] QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is not clustered.
+
+[INFO ] 12-11-2024 18:44:57.595 [Test worker] StdSchedulerFactory - Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+[INFO ] 12-11-2024 18:44:57.595 [Test worker] StdSchedulerFactory - Quartz scheduler version: 2.3.2
+[INFO ] 12-11-2024 18:44:57.596 [Test worker] QuartzScheduler - JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@19705650
+[INFO ] 12-11-2024 18:44:58.367 [Test worker] SchedulerFactoryBean - Starting Quartz Scheduler now
+[INFO ] 12-11-2024 18:44:58.424 [Test worker] LocalDataSourceJobStore - Freed 0 triggers from 'acquired' / 'blocked' state.
+[INFO ] 12-11-2024 18:44:58.434 [Test worker] LocalDataSourceJobStore - Recovering 0 jobs that were in-progress at the time of the last shut-down.
+[INFO ] 12-11-2024 18:44:58.435 [Test worker] LocalDataSourceJobStore - Recovery complete.
+[INFO ] 12-11-2024 18:44:58.438 [Test worker] LocalDataSourceJobStore - Removed 0 'complete' triggers.
+[INFO ] 12-11-2024 18:44:58.442 [Test worker] LocalDataSourceJobStore - Removed 0 stale fired job entries.
+[INFO ] 12-11-2024 18:44:58.448 [Test worker] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED started.
+[INFO ] 12-11-2024 18:44:58.463 [Test worker] QuartzSchedulerApplicationTests - Started QuartzSchedulerApplicationTests in 2.855 seconds (process running for 4.943)
+[INFO ] 12-11-2024 18:44:59.956 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:44:59.958 [SpringApplicationShutdownHook] SchedulerFactoryBean - Shutting down Quartz Scheduler
+[INFO ] 12-11-2024 18:44:59.959 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutting down.
+[INFO ] 12-11-2024 18:44:59.959 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED paused.
+[INFO ] 12-11-2024 18:44:59.960 [SpringApplicationShutdownHook] QuartzScheduler - Scheduler quartzScheduler_$_NON_CLUSTERED shutdown complete.
+[INFO ] 12-11-2024 18:44:59.961 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown initiated...
+[INFO ] 12-11-2024 18:44:59.969 [SpringApplicationShutdownHook] HikariDataSource - HikariPool-1 - Shutdown completed.
