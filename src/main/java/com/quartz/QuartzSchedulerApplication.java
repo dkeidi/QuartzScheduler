@@ -117,24 +117,24 @@ public class QuartzSchedulerApplication {
 //        info.setCallbackData("CopyJob");
 //        scheduler.schedule(CopyJob.class, info);
 
-        JobDetail jobDetail = JobBuilder.newJob(HelloWorldJob.class)
-                .withIdentity("HelloWorldJob")
-                .build();
+//        JobDetail jobDetail = JobBuilder.newJob(HelloWorldJob.class)
+//                .withIdentity("HelloWorldJob")
+//                .build();
+//
+//        TriggerInfo info1 = new TriggerInfo();
+//        info1.setCronExp("0/5 8 19 * * ?");
+//        info1.setCallbackData("HelloWorldJob");
+//        info1.setJobName("HelloWorldJob");
+//
+//        scheduler.schedule(jobDetail, info1);
 
-        TriggerInfo info1 = new TriggerInfo();
-        info1.setCronExp("0/5 8 19 * * ?");
-        info1.setCallbackData("HelloWorldJob");
-        info1.setJobName("HelloWorldJob");
 
-        scheduler.schedule(jobDetail, info1);
-
-
-        jobDetail = JobBuilder.newJob(CopyJob.class)
+        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
                 .withIdentity("CopyJob")
                 .build();
 
         TriggerInfo info2 = new TriggerInfo();
-        info2.setCronExp("0 8 19 * * ?");
+        info2.setCronExp("0 51 16 * * ?");
         info2.setCallbackData("CopyJob");
         info2.setJobName("CopyJob");
 

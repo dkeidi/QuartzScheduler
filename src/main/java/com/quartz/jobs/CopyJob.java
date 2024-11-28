@@ -27,10 +27,11 @@ public class CopyJob implements Job {
     String LOG_FILENAME = JOB_NAME + "/" + CustomLogger.getCurrentDate() + ".log";
     Boolean isNetworkLocation = false;
 
+    private static final int MAX_RETRIES = 3;
+    private static final int RETRY_DELAY_MS = 5000;
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-//        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-//        TriggerInfo info = (TriggerInfo) jobDataMap.get(CopyJob.class.getSimpleName());
         Scheduler scheduler = context.getScheduler();
         String jobId = "";
         String instanceId = "";
@@ -41,7 +42,25 @@ public class CopyJob implements Job {
 
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
-            _executeJob(jobId, context, instanceId);
+            int retries = 0;
+            boolean success = false;
+
+            while (retries < MAX_RETRIES && !success) {
+                try {
+                    _executeJob(jobId, context, instanceId);
+                    success = true;  // If the job completes successfully, exit loop
+                } catch (IOException | InterruptedException e) {
+                    retries++;
+                    LOG.error("Job failed, attempt " + retries + " of " + MAX_RETRIES, e);
+
+                    if (retries < MAX_RETRIES) {
+                        LOG.info("Retrying in " + RETRY_DELAY_MS / 1000 + " seconds...");
+                        Thread.sleep(RETRY_DELAY_MS);  // Delay before retry
+                    } else {
+                        throw new JobExecutionException("Job failed after " + MAX_RETRIES + " attempts", e);
+                    }
+                }
+            }
 
         } catch (Exception e) {
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Error", LOG_FILENAME, e);
@@ -53,7 +72,7 @@ public class CopyJob implements Job {
         }
     }
 
-    private void _executeJob(String jobId, JobExecutionContext context, String instanceId) throws IOException, InterruptedException {
+    private void _executeJob(String jobId, JobExecutionContext context, String instanceId) throws IOException, InterruptedException, JobExecutionException {
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
         JobExecutor.executeJob(COMMAND, MASTER_COMMAND, isNetworkLocation, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId, LOG_FILENAME);
