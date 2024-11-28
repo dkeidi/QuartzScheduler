@@ -19,16 +19,16 @@ public final class SchedulerBuilder {
 
         return JobBuilder
                 .newJob(jobClass)
-                .withIdentity(jobClass.getSimpleName())
+                .withIdentity(info.getJobName())
                 .setJobData(jobDataMap)
                 .build();
     }
 
     public static CronTrigger buildTrigger(final Class jobClass, final TriggerInfo info) {
-        CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionDoNothing();
+        CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
 
         return newTrigger()
-                .withIdentity(jobClass.getSimpleName())
+                .withIdentity(info.getJobName())
                 .withSchedule(cron)
                 .build();
     }
