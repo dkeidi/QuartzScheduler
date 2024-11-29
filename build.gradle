@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 //	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 //	implementation 'org.springframework.boot:spring-boot-starter-jdbc:2.4.1'
 //	implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
@@ -49,6 +50,13 @@ tasks.register('copyFilesToLibs', Copy) {
 }
 
 build.dependsOn copyFilesToLibs
+
+tasks.register('copyFilesToMyQuartzTest', Copy) {
+	from 'build/libs'
+	include '**/*SNAPSHOT.jar', '**/application.properties'
+	into 'C:/Users/keidi.tay.chuan/Documents/MyQuartzTest'
+	includeEmptyDirs = false // Avoid creating empty directories in the destination
+}
 
 configurations {
 	configureEach {

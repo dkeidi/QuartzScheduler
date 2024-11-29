@@ -9,9 +9,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,6 @@ public class SchedulerService {
     }
 
     public <T extends Job> void schedule(final JobDetail jobDetail, final TriggerInfo info) {
-//        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
         final CronTrigger trigger = SchedulerBuilder.buildTrigger(jobDetail.getJobClass(), info);
 
         try {
@@ -61,7 +58,7 @@ public class SchedulerService {
         }
     }
 
-    public void getScheduledJobs() throws SchedulerException {
+    public List<TriggerInfo> getScheduledJobs() throws SchedulerException {
 
         LOG.info("getScheduledJobs");
 
@@ -77,15 +74,14 @@ public class SchedulerService {
                 Date nextFireTime = triggers.get(0).getNextFireTime();
 
                 LOG.info("[jobName] : " + jobName + " [groupName] : " + jobGroup + " - " + nextFireTime);
-
             }
         }
+        return null;
     }
 
-    public List<TriggerInfo> getAllRunningTimers() {
+    public List<TriggerInfo> getAllRunningJobs() {
         try {
             // jobs belong to a group
-            // iterate through all the jobs
             return scheduler.getJobKeys(GroupMatcher.anyGroup())
                     .stream()
                     .map(jobKey -> {
@@ -105,30 +101,30 @@ public class SchedulerService {
         }
     }
 
-    public TriggerInfo getRunningTimer(String timerId) {
+    public TriggerInfo getRunningJob(String jobId) {
         try {
-            final JobDetail jobDetail = scheduler.getJobDetail(new JobKey(timerId));
+            final JobDetail jobDetail = scheduler.getJobDetail(new JobKey(jobId));
             if (jobDetail == null) {
-                LOG.error("Failed to find timer with ID '{}'", timerId);
+                LOG.error("Failed to find job with ID '{}'", jobId);
                 return null;
             }
 
-            return (TriggerInfo) jobDetail.getJobDataMap().get(timerId);
+            return (TriggerInfo) jobDetail.getJobDataMap().get(jobId);
         } catch (final SchedulerException e) {
             LOG.error(e.getMessage(), e);
             return null;
         }
     }
 
-    public void updateTimer(final String timerId, final TriggerInfo info) {
+    public void updateJob(final String jobId, final TriggerInfo info) {
         try {
-            final JobDetail jobDetail = scheduler.getJobDetail(new JobKey(timerId));
+            final JobDetail jobDetail = scheduler.getJobDetail(new JobKey(jobId));
             if (jobDetail == null) {
-                LOG.error("Failed to find timer with ID '{}'", timerId);
+                LOG.error("Failed to find job with ID '{}'", jobId);
                 return;
             }
 
-            jobDetail.getJobDataMap().put(timerId, info);
+            jobDetail.getJobDataMap().put(jobId, info);
 
             scheduler.addJob(jobDetail, true, true);
         } catch (final SchedulerException e) {
