@@ -1,11 +1,15 @@
 package com.quartz.controller;
 
 import com.quartz.info.TriggerInfo;
+import com.quartz.model.Employee;
 import com.quartz.services.SchedulerService;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -19,27 +23,39 @@ public class JobsController {
         this.service = service;
     }
 
-//    @PostMapping("/runhelloworld")
-//    public void runHelloWorldJob() {
-//        service.runHelloWorldJob();
-//    }
-
     @GetMapping
-    public List<TriggerInfo> getAllScheduledJobs() throws SchedulerException {
-        return service.getScheduledJobs();
+    public ResponseEntity<List<TriggerInfo>> getAllScheduledJobs() throws SchedulerException {
+        List<TriggerInfo> jobs = service.getScheduledJobs();
+        return new ResponseEntity<>(jobs, HttpStatus.OK);
     }
 
+    //// LIST JOBS ////
     @GetMapping("/running")
-    public List<TriggerInfo> getAllRunningTimers() {
-        return service.getAllRunningJobs();
+    public ResponseEntity<List<TriggerInfo>> getAllRunningTimers() {
+        List<TriggerInfo> jobs = service.getAllRunningJobs();
+        return new ResponseEntity<>(jobs, HttpStatus.OK);
     }
-
 
     @GetMapping("/{jobId}")
     public TriggerInfo getRunningJob(@PathVariable String jobId) {
         return service.getRunningJob(jobId);
     }
 
+
+    //// CREATE JOBS ////
+    @PostMapping("/create/adhoc")
+//    public ResponseEntity<TriggerInfo> createAdhoc(String jobKey, Date jobDate, String scriptPath, Boolean scriptOnNetwork) {
+
+    public ResponseEntity<TriggerInfo> createAdhoc(String cronExp) {
+        TriggerInfo jobs= service.createAdhocJob("CopyJob", null, cronExp, "batch_files\\copy_file.bat" , false);
+        return new ResponseEntity<>(jobs, HttpStatus.OK);
+    }
+
+//    @PostMapping("/create/recurring")
+
+
+
+    //// DELETE JOBS ////
 //    @DeleteMapping("/{jobId}")
 //    public Boolean deleteJob(@PathVariable String jobId) {
 //        return service.deleteJob(jobId);

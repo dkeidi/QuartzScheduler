@@ -11,9 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.SchedulerException;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -129,16 +127,16 @@ public class QuartzSchedulerApplication {
 //        scheduler.schedule(jobDetail, info1);
 
 
-        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob")
-                .build();
-
-        TriggerInfo info2 = new TriggerInfo();
-        info2.setCronExp("0 51 16 * * ?");
-        info2.setCallbackData("CopyJob");
-        info2.setJobName("CopyJob");
-
-        scheduler.schedule(jobDetail, info2);
+//        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+//                .withIdentity("CopyJob")
+//                .build();
+//
+//        TriggerInfo info2 = new TriggerInfo();
+//        info2.setCronExp("0 51 16 * * ?");
+//        info2.setCallbackData("CopyJob");
+//        info2.setJobName("CopyJob");
+//
+//        scheduler.schedule(jobDetail, info2);
     }
 
     private static void _jobsFromExternalProperties(String[] args) {
@@ -197,8 +195,6 @@ public class QuartzSchedulerApplication {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
-                .usingJobData("master_command", masterCommandValue)
-                .usingJobData("is_network_location", isNetworkLocation)
                 .usingJobData("folder", jobKey)
                 .build();
 
@@ -207,6 +203,6 @@ public class QuartzSchedulerApplication {
         info.setCallbackData(jobKey);
         info.setJobName(jobKey);
 
-        scheduler.schedule(jobDetail, info);
+        scheduler.schedule(jobDetail, info, true);
     }
 }
