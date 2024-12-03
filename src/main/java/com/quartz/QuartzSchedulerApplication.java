@@ -9,6 +9,8 @@ import com.quartz.util.PropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.quartz.JobBuilder;
@@ -64,7 +66,7 @@ public class QuartzSchedulerApplication {
         String jarDir = getJarDir();
         // Specify the location for log4j2.xml
         log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
-
+        System.out.println(log4jConfigFilePath);
         // Generate log4j2.xml based on job.properties and app.properties
         jobProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "job.properties");
         appProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "application.properties");
@@ -129,21 +131,20 @@ public class QuartzSchedulerApplication {
 //        scheduler.schedule(jobDetail, info1);
 
 
-        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob")
-                .build();
-
-        TriggerInfo info2 = new TriggerInfo();
-        info2.setCronExp("0 51 16 * * ?");
-        info2.setCallbackData("CopyJob");
-        info2.setJobName("CopyJob");
-
-        scheduler.schedule(jobDetail, info2);
+//        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+//                .withIdentity("CopyJob")
+//                .build();
+//
+//        TriggerInfo info2 = new TriggerInfo();
+//        info2.setCronExp("0 51 16 * * ?");
+//        info2.setCallbackData("CopyJob");
+//        info2.setJobName("CopyJob");
+//
+//        scheduler.schedule(jobDetail, info2);
     }
 
     private static void _jobsFromExternalProperties(String[] args) {
         try {
-
             Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, appProperties, log4jConfigFilePath, Boolean.parseBoolean(appProperties.getProperty("app.isJDBC")));
 
             // Set the log4j configuration file system property
@@ -157,6 +158,36 @@ public class QuartzSchedulerApplication {
 
             // .run has to come after Configurator for LOG4J2 to work
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
+            LoggerContext context = (LoggerContext) LogManager.getContext(false);
+            LOG.info("context");
+            LOG.info(context);
+
+            Configuration config = context.getConfiguration();
+            LOG.info("config");
+            LOG.info(config);
+
+            System.out.println("##########LOGGERS############");
+
+            // Inspect loggers
+            config.getLoggers().forEach((name, logger) -> {
+                System.out.println("Logger Name: " + name);
+                System.out.println("Logger Level: " + logger.getLevel());
+                System.out.println("Appender References: ");
+                logger.getAppenderRefs().forEach(ref -> {
+                    System.out.println("    - " + ref.getRef());
+                });
+            });
+
+            System.out.println("##########APPENDERS############");
+
+            // Inspect appenders
+            config.getAppenders().forEach((name, appender) -> {
+                System.out.println("Appender Name: " + name);
+                System.out.println("Appender Type: " + appender.getClass().getName());
+                if (appender.getLayout() != null) {
+                    System.out.println("Appender Layout: " + appender.getLayout().getClass().getName());
+                }
+            });
 
         } catch (IOException e) {
             LOG.debug(e);
@@ -207,6 +238,6 @@ public class QuartzSchedulerApplication {
         info.setCallbackData(jobKey);
         info.setJobName(jobKey);
 
-        scheduler.schedule(jobDetail, info);
+        scheduler.schedule(jobDetail, info, true);
     }
 }

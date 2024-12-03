@@ -5,6 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.*;
 
+import java.util.Date;
+
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
@@ -24,12 +26,23 @@ public final class SchedulerBuilder {
                 .build();
     }
 
-    public static CronTrigger buildTrigger(final Class jobClass, final TriggerInfo info) {
+    public static CronTrigger buildCronTrigger(final Class jobClass, final TriggerInfo info) {
         CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
 
         return newTrigger()
                 .withIdentity(info.getJobName())
                 .withSchedule(cron)
+                .build();
+    }
+
+    public static Trigger buildSimpleTrigger(final Class jobClass, final TriggerInfo info) {
+        SimpleScheduleBuilder builder = SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(info.getRepeatIntervalMs());
+
+        return TriggerBuilder
+                .newTrigger()
+                .withIdentity(jobClass.getSimpleName())
+                .withSchedule(builder)
+                .startAt(new Date(System.currentTimeMillis() + info.getInitialOffsetMs()))
                 .build();
     }
 }
