@@ -42,11 +42,18 @@ public class JobsController {
 
 
     //// CREATE JOBS ////
-    @PostMapping("/create/adhoc")
+    @PostMapping("/create_adhoc_job")
 //    public ResponseEntity<TriggerInfo> createAdhoc(String jobKey, Date jobDate, String scriptPath, Boolean scriptOnNetwork) {
 
-    public ResponseEntity<TriggerInfo> createAdhoc(String cronExp) {
-        TriggerInfo jobs= service.createAdhocJob("CopyJob", null, cronExp, "batch_files\\copy_file.bat" , false);
+    public ResponseEntity<TriggerInfo> createAdhocJob(Boolean is_recurring, String cron_expression, String job_datetime, String job_name, String script_filepath, Boolean is_server_script, String interface_name) {
+        TriggerInfo jobs = null;
+        if (is_recurring) {
+            jobs= service.createRecurringJob(job_name, cron_expression, script_filepath , is_server_script, interface_name);
+        } else {
+            System.out.println("here");
+            jobs= service.createOneTimeAdhocCopyJob(job_datetime);
+        }
+
         return new ResponseEntity<>(jobs, HttpStatus.OK);
     }
 

@@ -12,17 +12,14 @@ import org.apache.logging.log4j.core.appender.RollingFileAppender;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.config.*;
-import org.apache.logging.log4j.core.config.builder.api.*;
-import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
-import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
-
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -32,6 +29,22 @@ import java.util.stream.Collectors;
 public class SchedulerService {
     private static final Logger LOG = LogManager.getLogger(SchedulerService.class);
     private final Scheduler scheduler;
+
+    public static Properties appProperties;
+    public static Properties jobProperties;
+    public static String generatedLogPath;
+
+    public static void setAppProperties(Properties appProperties) {
+        SchedulerService.appProperties = appProperties;
+    }
+
+    public static void setJobProperties(Properties jobProperties) {
+        SchedulerService.jobProperties = jobProperties;
+    }
+
+    public static void setGeneratedLogPath(String generatedLogPath) {
+        SchedulerService.generatedLogPath = generatedLogPath;
+    }
 
     @Autowired
     public SchedulerService(final Scheduler scheduler) {
@@ -45,6 +58,7 @@ public class SchedulerService {
         if (isCron) {
             cronTrigger = SchedulerBuilder.buildCronTrigger(jobDetail.getJobClass(), info);
         } else {
+
             simpleTrigger = SchedulerBuilder.buildSimpleTrigger(jobDetail.getJobClass(), info);
         }
 
@@ -52,7 +66,7 @@ public class SchedulerService {
             LOG.info("{} job scheduled.", info.getCallbackData());
             LOG.info("Job key is {}.", jobDetail.getKey());
 
-            if (scheduler.checkExists(jobDetail.getKey())){
+            if (scheduler.checkExists(jobDetail.getKey())) {
                 scheduler.deleteJob(jobDetail.getKey());
             }
 
@@ -75,7 +89,7 @@ public class SchedulerService {
             LOG.info("{} job scheduled.", info.getCallbackData());
             LOG.info("Job key is {}.", jobDetail.getKey());
 
-            if (scheduler.checkExists(jobDetail.getKey())){
+            if (scheduler.checkExists(jobDetail.getKey())) {
                 scheduler.deleteJob(jobDetail.getKey());
             }
 
@@ -105,13 +119,12 @@ public class SchedulerService {
                     String cronExpression = null;
 
                     // Check if the trigger is a CronTrigger
-                    if (trigger instanceof CronTrigger) {
-                        CronTrigger cronTrigger = (CronTrigger) trigger;
+                    if (trigger instanceof CronTrigger cronTrigger) {
                         cronExpression = cronTrigger.getCronExpression(); // Retrieve the cron expression
                     }
 
                     // Log the details
-                    LOG.info("[jobName] : " + jobName + " [groupName] : " + jobGroup + " [cron] : " + cronExpression + " - " + nextFireTime);
+                    LOG.info("[jobName] : {} [groupName] : {} [cron] : {} - {}", jobName, jobGroup, cronExpression, nextFireTime);
 
                     // Create a TriggerInfo object and add it to the list
                     TriggerInfo triggerInfo = new TriggerInfo();
@@ -177,24 +190,68 @@ public class SchedulerService {
         }
     }
 
-    public TriggerInfo createAdhocCopyJob() {
+    public TriggerInfo createRecurringAdhocCopyJob() {
         JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
                 .withIdentity("CopyJob")
                 .build();
 
-        TriggerInfo info2 = new TriggerInfo();
-        info2.setCronExp("0 51 16 * * ?");
-        info2.setCallbackData("CopyJob");
-        info2.setJobName("CopyJob");
+        TriggerInfo info = new TriggerInfo();
+        info.setCronExp("0 51 16 * * ?");
+        info.setCallbackData("CopyJob");
+        info.setJobName("CopyJob");
 
-        schedule(jobDetail, info2, true);
-        return info2;
+        schedule(jobDetail, info, true);
+        return info;
     }
 
-    public TriggerInfo createAdhocJob(String jobKey, Date jobDate, String jobCronExp, String commandValue, Boolean isNetworkLocation) {
+    public TriggerInfo createOneTimeAdhocCopyJob(String jobDatetime) {
+        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+                .withIdentity("CopyJob")
+                .build();
+
+        TriggerInfo info = new TriggerInfo();
+        info.setJobDatetime(jobDatetime);
+        info.setCallbackData("CopyJob");
+        info.setJobName("CopyJob");
+
+        schedule(jobDetail, info, false);
+        addAdHocJobLogger("CopyJob");
+
+        return info;
+
+    }
+
+    public TriggerInfo createOnetimeJob(String jobKey, String jobDatetime, String commandValue, Boolean isServerScript, String groupName) {
+        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
+
+        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
+                .withIdentity(jobKey, groupName)
+                .usingJobData("command", commandValue)
+                .usingJobData("master_command", masterCommandValue)
+                .usingJobData("is_server_script", isServerScript)
+                .usingJobData("folder", jobKey)
+                .build();
+
+        TriggerInfo info = new TriggerInfo();
+        info.setJobDatetime(jobDatetime);
+        info.setCallbackData(jobKey);
+        info.setJobName(jobKey);
+
+        schedule(jobDetail, info, true);
+
+        addAdHocJobLogger(jobKey);
+
+        return info;
+    }
+
+    public TriggerInfo createRecurringJob(String jobKey, String jobCronExp, String commandValue, Boolean isServerScript, String groupName) {
+        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
+
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
+                .usingJobData("master_command", masterCommandValue)
+                .usingJobData("is_server_script", isServerScript)
                 .usingJobData("folder", jobKey)
                 .build();
 
@@ -205,67 +262,58 @@ public class SchedulerService {
 
         schedule(jobDetail, info, true);
 
-        String logFolderName = "quartz_logs";
-        addAdHocJobLogger(logFolderName, jobKey, jobKey + "/%d{dd-MM-yyyy}.log");
-
+        addAdHocJobLogger(jobKey);
 
         return info;
     }
 
-    public static void addAdHocJobLogger2(String logFolderName, String loggerName, String filePattern) throws IOException {
+    public TriggerInfo createRecurringAdhocJob(String jobKey, String jobCronExp, String commandValue, Boolean isServerScript) {
+        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
 
-        ConfigurationBuilder<BuiltConfiguration> builder
-                = ConfigurationBuilderFactory.newConfigurationBuilder();
-
-        AppenderComponentBuilder rollingFile = builder.newAppender("LogToCopyJobFile", "RollingFile");
-        rollingFile.addAttribute("fileName", logFolderName + "/logging.log");
-        rollingFile.addAttribute("filePattern", "rolling-%d{MM-dd-yy}.log.gz");
-        builder.add(rollingFile);
-
-        LayoutComponentBuilder standard = builder.newLayout("PatternLayout");
-        standard.addAttribute("pattern", "%d [%t] %-5level: %msg%n%throwable");
-        rollingFile.add(standard);
-
-
-        LoggerComponentBuilder logger2 = builder.newLogger("com.quartz.jobs.CopyJob", Level.DEBUG);
-        logger2.add(builder.newAppenderRef("log"));
-        logger2.addAttribute("additivity", false);
-
-        builder.add(logger2);
-
-        ComponentBuilder triggeringPolicies = builder.newComponent("Policies")
-                .addComponent(builder.newComponent("CronTriggeringPolicy")
-                        .addAttribute("schedule", "0 0 0 * * ?"))
-                .addComponent(builder.newComponent("SizeBasedTriggeringPolicy")
-                        .addAttribute("size", "100M"));
-
-        rollingFile.addComponent(triggeringPolicies);
-
-        builder.writeXmlConfiguration(System.out);
-
-        Configurator.initialize(builder.build());
-    }
-
-    public static void addAdHocJobLogger(String logFolderName, String loggerName, String filePattern) {
-
-        LoggerContext context = (LoggerContext) LogManager.getContext(false);
-
-        Configuration config = context.getConfiguration();
-
-        DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        System.out.println("Log file path: " + logFolderName + "/" + loggerName + "/" + LocalDateTime.now().format(DATE_FORMATTER) + ".log");
-
-        // 2. Define the layout for the RollingFile appender
-        PatternLayout layout = PatternLayout.newBuilder()
-                .withPattern("[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n")
+        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
+                .withIdentity(jobKey)
+                .usingJobData("command", commandValue)
+                .usingJobData("master_command", masterCommandValue)
+                .usingJobData("is_server_script", isServerScript)
+                .usingJobData("folder", jobKey)
                 .build();
 
-        // 3. Create the RollingFile appender for the ad-hoc job
+        TriggerInfo info = new TriggerInfo();
+        info.setCronExp(jobCronExp);
+        info.setCallbackData(jobKey);
+        info.setJobName(jobKey);
+
+        schedule(jobDetail, info, true);
+
+        addAdHocJobLogger(jobKey);
+
+        return info;
+    }
+
+    public static void addAdHocJobLogger(String jobKey) {
+        String logFolderName = appProperties.getProperty("app.logFolder");
+        String jobLogLevel = appProperties.getProperty("app.job.logLevel");
+        String jobPrefix = appProperties.getProperty("app.jobname.prefix");
+        String logDir = logFolderName + "/" + jobKey + "/";
+
+        String dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy").format(LocalDateTime.now()) + ".log";
+        String archiveDateFormat = "%d{dd-MM-yyyy}.log.gz";
+        String rollingFilePattern = "[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n";
+
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        Configuration config = context.getConfiguration();
+
+        // Define the layout for the RollingFile appender
+        PatternLayout layout = PatternLayout.newBuilder()
+                .withPattern(rollingFilePattern)
+                .build();
+
+        // Create the RollingFile appender for the ad-hoc job
         RollingFileAppender rollingFileAppender = RollingFileAppender.newBuilder()
-                .setName("Log" + loggerName + "ToFile")
+                .setName("Log" + jobKey + "ToFile")
                 .setLayout(layout)
-                .withFileName(logFolderName + "/" + loggerName + "/" + LocalDateTime.now().format(DATE_FORMATTER) + ".log")
-                .withFilePattern(filePattern + ".gz")
+                .withFileName(logDir + dateFormat)
+                .withFilePattern(logDir + archiveDateFormat)
                 .withPolicy(SizeBasedTriggeringPolicy.createPolicy("10MB"))
                 .withPolicy(TimeBasedTriggeringPolicy.newBuilder().withInterval(1).withModulate(true).build())
                 .setConfiguration(config)
@@ -273,53 +321,67 @@ public class SchedulerService {
 
         rollingFileAppender.start();
 
-        // 4. Add the appender to the configuration
         config.addAppender(rollingFileAppender);
 
-        // 5. Define a logger reference for the new job
+        // Define a logger reference for the new job
         AppenderRef rollingRef = AppenderRef.createAppenderRef(rollingFileAppender.getName(), null, null);
         AppenderRef consoleRef = AppenderRef.createAppenderRef("LogToConsole", null, null);
         AppenderRef jobToDbRef = AppenderRef.createAppenderRef("LogJobToDB", null, null);
         AppenderRef detailToDbRef = AppenderRef.createAppenderRef("LogDetailToDB", null, null);
+        AppenderRef fileToDbRef = AppenderRef.createAppenderRef("LogFileToDB", null, null);
 
-        // Combine all appenders into a single array
-        AppenderRef[] refs = new AppenderRef[]{rollingRef, consoleRef, jobToDbRef, detailToDbRef};
+        AppenderRef[] refs = new AppenderRef[]{rollingRef, consoleRef, jobToDbRef, detailToDbRef, fileToDbRef};
 
-        // 6. Create or update the logger configuration for the ad-hoc job
-        LoggerConfig loggerConfig = config.getLoggerConfig("com.quartz.jobs.CopyJob");
+        // Create or update the logger configuration for the ad-hoc job
+        LoggerConfig loggerConfig = config.getLoggerConfig(jobPrefix + "." + jobKey);
 
-        LOG.info(loggerConfig);
-
-        if (loggerConfig == null || loggerConfig.getName().equals("")) {
+        if (loggerConfig == null || loggerConfig.getName().isEmpty()) {
             // Logger doesn't exist, create a new one
-            loggerConfig = LoggerConfig.createLogger(false, Level.INFO, loggerName, "true", refs, null, config, null);
-            loggerConfig.addAppender(rollingFileAppender, Level.INFO, null);
-            loggerConfig.addAppender(config.getAppender("LogToConsole"), Level.INFO, null); // Add existing appenders
-            loggerConfig.addAppender(config.getAppender("LogJobToDB"), Level.INFO, null);
-            loggerConfig.addAppender(config.getAppender("LogDetailToDB"), Level.INFO, null);
+            loggerConfig = LoggerConfig.createLogger(false, Level.valueOf(jobLogLevel), jobKey, "true", refs, null, config, null);
+            loggerConfig.addAppender(rollingFileAppender, Level.valueOf(jobLogLevel), null);
+            loggerConfig.addAppender(config.getAppender("LogToConsole"), Level.valueOf(jobLogLevel), null); // Add existing appenders
+            loggerConfig.addAppender(config.getAppender("LogJobToDB"), Level.valueOf(jobLogLevel), null);
+            loggerConfig.addAppender(config.getAppender("LogDetailToDB"), Level.valueOf(jobLogLevel), null);
+            loggerConfig.addAppender(config.getAppender("LogFileToDB"), Level.valueOf(jobLogLevel), null);
 
             // Add the logger configuration to the context
-            config.addLogger("com.quartz.jobs.CopyJob", loggerConfig);
+            config.addLogger(jobPrefix + "." + jobKey, loggerConfig);
         } else {
             // Logger exists, update its appenders
-            loggerConfig.addAppender(rollingFileAppender, Level.INFO, null);
+            loggerConfig.addAppender(rollingFileAppender, Level.valueOf(jobLogLevel), null);
             if (!loggerConfig.getAppenders().containsKey("LogToConsole")) {
-                loggerConfig.addAppender(config.getAppender("LogToConsole"), Level.INFO, null);
+                loggerConfig.addAppender(config.getAppender("LogToConsole"), Level.valueOf(jobLogLevel), null);
             }
             if (!loggerConfig.getAppenders().containsKey("LogJobToDB")) {
-                loggerConfig.addAppender(config.getAppender("LogJobToDB"), Level.INFO, null);
+                loggerConfig.addAppender(config.getAppender("LogJobToDB"), Level.valueOf(jobLogLevel), null);
             }
             if (!loggerConfig.getAppenders().containsKey("LogDetailToDB")) {
-                loggerConfig.addAppender(config.getAppender("LogDetailToDB"), Level.INFO, null);
+                loggerConfig.addAppender(config.getAppender("LogDetailToDB"), Level.valueOf(jobLogLevel), null);
+            }
+            if (!loggerConfig.getAppenders().containsKey("LogFileToDB")) {
+                loggerConfig.addAppender(config.getAppender("LogFileToDB"), Level.valueOf(jobLogLevel), null);
             }
         }
 
-        // 7. Update the logger context
         context.updateLoggers();
 
+        LOG.info("RAMLogger updated");
         // Reload the Log4j2 configuration
-        reloadLog4jConfiguration("C:/Users/keidi.tay.chuan/Documents/MyQuartzTest/log4j2.xml");
+        reloadLog4jConfiguration(generatedLogPath);
 
+//        _xmlDebug(config);
+    }
+
+    public static void reloadLog4jConfiguration(String configFilePath) {
+        try {
+            ConfigurationSource source = new ConfigurationSource(new FileInputStream(configFilePath));
+            Configurator.initialize(null, source);
+        } catch (IOException e) {
+            LOG.error(e);
+        }
+    }
+
+    private static void _xmlDebug(Configuration config) {
         System.out.println("##########APPENDERS############");
 
         // Inspect appenders
@@ -339,19 +401,8 @@ public class SchedulerService {
             System.out.println("Logger Name: " + name);
             System.out.println("Logger Level: " + logger.getLevel());
             System.out.println("Appender References: ");
-            logger.getAppenderRefs().forEach(ref -> {
-                System.out.println("    - " + ref.getRef());
-            });
+            logger.getAppenderRefs().forEach(ref -> System.out.println("    - " + ref.getRef()));
         });
-    }
-
-    public static void reloadLog4jConfiguration(String configFilePath) {
-        try {
-            ConfigurationSource source = new ConfigurationSource(new FileInputStream(configFilePath));
-            Configurator.initialize(null, source);
-        }catch (IOException e) {
-            LOG.error(e);
-        }
     }
 
 }

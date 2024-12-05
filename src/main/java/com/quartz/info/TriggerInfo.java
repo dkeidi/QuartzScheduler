@@ -10,10 +10,10 @@ public class TriggerInfo implements Serializable {
     private String callbackData;
     private String scriptLocation;
     private String jobName;
-
-    private long repeatIntervalMs;
-
-    private long initialOffsetMs;
+    private String jobDatetime;
+    private long repeatIntervalMs = 0;
+    private long initialOffsetMs = 0;
+    private int repeatCount = 0;
 
     public String getJobGroup() {
         return jobGroup;
@@ -38,13 +38,13 @@ public class TriggerInfo implements Serializable {
 
     public void setJobName(String jobName) { this.jobName = jobName; }
 
-    public String getScriptLocation() {
-        return scriptLocation;
-    }
+    public String getJobDatetime() { return jobDatetime; }
 
-    public void setScriptLocation(String scriptLocation) {
-        this.scriptLocation = scriptLocation;
-    }
+    public void setJobDatetime(String jobDatetime) { System.out.println(jobDatetime); this.jobDatetime = jobDatetime; }
+
+    public String getScriptLocation() { return scriptLocation; }
+
+    public void setScriptLocation(String scriptLocation) { this.scriptLocation = scriptLocation; }
 
     public boolean isRunForever() {
         return runForever;
@@ -85,4 +85,8 @@ public class TriggerInfo implements Serializable {
     public long getRepeatIntervalMs() { return repeatIntervalMs; }
 
     public void setRepeatIntervalMs(long repeatIntervalMs) { this.repeatIntervalMs = repeatIntervalMs; }
+
+    public int getRepeatCount() { return repeatCount; }
+
+    public void setRepeatCount(int repeatCount) { this.repeatCount = repeatCount; }
 }
