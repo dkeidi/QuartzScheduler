@@ -17,16 +17,19 @@ public class Log4j2XmlGenerator {
         String jobLogLevel = appProperties.getProperty("app.job.logLevel");
         String rootLogLevel = appProperties.getProperty("app.root.logLevel");
         String logFolder = appProperties.getProperty("app.logFolder");
+        String jobPrefix = appProperties.getProperty("app.jobname.prefix");
+
         String logPattern = "%d{dd-MM-yyyy'T'HH:mm:ss.SSSZ} %p %m%n";
         String consolePattern = "%d{dd-MM-yyyy HH:mm:ss} %-5p %c{1}:%L - %m%n";
+        String rollingFilePattern = "[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n";
 
         log4jXml.append(generateXmlHeader(log4j2Level));
         log4jXml.append(generateProperties(logPattern, logFolder, serverName, dbName, isJDBC, appProperties));
 
         if (isJDBC) {
-            log4jXml.append(generateJDBCJobAppender(consolePattern, jobProperties, jobLogLevel, rootLogLevel));
+            log4jXml.append(generateJDBCJobAppender(consolePattern, jobProperties, jobLogLevel, rootLogLevel, jobPrefix, rollingFilePattern));
         } else {
-            log4jXml.append(generateRAMJobAppender(consolePattern, jobProperties, jobLogLevel, rootLogLevel));
+            log4jXml.append(generateRAMJobAppender(consolePattern, jobProperties, jobLogLevel, rootLogLevel, jobPrefix, rollingFilePattern));
         }
 
         try (FileWriter writer = new FileWriter(filePath)) {
@@ -35,7 +38,7 @@ public class Log4j2XmlGenerator {
     }
 
     private static String generateXmlHeader(String log4j2Level) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Configuration status=\""+ log4j2Level +"\">\n";
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Configuration status=\"" + log4j2Level + "\">\n";
     }
 
     private static String generateProperties(String logPattern, String logFolder, String serverName, String dbName, boolean isJDBC, Properties appProperties) {
@@ -58,14 +61,13 @@ public class Log4j2XmlGenerator {
         return propertiesSection.toString();
     }
 
-    private static String generateJDBCJobAppender(String consolePattern, Properties jobProperties, String jobLogLevel, String rootLogLevel) {
+    private static String generateJDBCJobAppender(String consolePattern, Properties jobProperties, String jobLogLevel, String rootLogLevel, String jobPrefix, String rollingFilePattern) {
         StringBuilder jdbcSection = new StringBuilder();
         StringBuilder rootAppenderRefs = new StringBuilder();
 
         // Appenders Section
         jdbcSection.append("    <Appenders>\n")
                 .append(generateConsoleAppender(consolePattern))
-
 
                 // JDBC Appenders
                 .append("        <JDBC name=\"LogJobToDB\" tableName=\"LOG_SCHEDULER\">\n")
@@ -105,7 +107,7 @@ public class Log4j2XmlGenerator {
                 .append("        </JDBC>\n");
 
 
-        jdbcSection.append(generateRollingFileAppender(jobProperties));
+        jdbcSection.append(generateRollingFileAppender(jobProperties, rollingFilePattern));
 
         jdbcSection.append("    </Appenders>\n")
                 .append("    <Loggers>\n");
@@ -115,12 +117,13 @@ public class Log4j2XmlGenerator {
             if (key.startsWith("job.") && key.endsWith(".cron")) {
                 String jobName = key.split("\\.")[1];
                 appendLoggerBlock(jdbcSection, jobName, jobLogLevel, List.of(
-                        "Log" + jobName + "ToFile",
-                        "LogToConsole",
-                        "LogJobToDB",
-                        "LogFileToDB",
-                        "LogDetailToDB"
-                ));
+                                "Log" + jobName + "ToFile",
+                                "LogToConsole",
+                                "LogJobToDB",
+                                "LogFileToDB",
+                                "LogDetailToDB"
+                        ),
+                        jobPrefix);
                 rootAppenderRefs.append("            <AppenderRef ref=\"Log").append(jobName).append("ToFile\"/>\n");
             }
         }
@@ -128,11 +131,11 @@ public class Log4j2XmlGenerator {
         return jdbcSection.toString();
     }
 
-    private static String generateRAMJobAppender(String consolePattern, Properties jobProperties, String jobLogLevel, String rootLogLevel) {
+    private static String generateRAMJobAppender(String consolePattern, Properties jobProperties, String jobLogLevel, String rootLogLevel, String jobPrefix, String rollingFilePattern) {
         StringBuilder ramSection = new StringBuilder();
 
         ramSection.append("    <Appenders>\n").append(generateConsoleAppender(consolePattern));
-        ramSection.append(generateRollingFileAppender(jobProperties));
+        ramSection.append(generateRollingFileAppender(jobProperties, rollingFilePattern));
 
         ramSection.append("    </Appenders>\n")
                 .append("    <Loggers>\n");
@@ -150,7 +153,7 @@ public class Log4j2XmlGenerator {
                 appendLoggerBlock(ramSection, jobName, jobLogLevel, List.of(
                         "Log" + jobName + "ToFile",
                         "LogToConsole"
-                ));
+                ), jobPrefix);
             }
         }
         appendRootSection(ramSection, rootLogLevel, "            <AppenderRef ref=\"LogToFile\"/>\n");
@@ -163,14 +166,14 @@ public class Log4j2XmlGenerator {
                 "        </Console>\n";
     }
 
-    private static String generateRollingFileAppender(Properties jobProperties) {
+    private static String generateRollingFileAppender(Properties jobProperties, String rollingFilePattern) {
         StringBuilder rollingFileSection = new StringBuilder();
 
         rollingFileSection.append("        <RollingFile name=\"LogToFile\" ")
                 .append("fileName=\"${BASE_FOLDER}/${date:dd-MM-yyyy}.log\" ")
                 .append("filePattern=\"${BASE_FOLDER}/%d{dd-MM-yyyy}.log.gz\">\n")
                 .append("            <PatternLayout>\n")
-                .append("                <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>\n")
+                .append("                <pattern>").append(rollingFilePattern).append("</pattern>\n")
                 .append("            </PatternLayout>\n")
                 .append("            <Policies>\n")
                 .append("                <TimeBasedTriggeringPolicy interval=\"2\" modulate=\"true\" />\n")
@@ -187,7 +190,7 @@ public class Log4j2XmlGenerator {
                         .append("fileName=\"${BASE_FOLDER}/").append(jobName).append("/${date:dd-MM-yyyy}.log\" ")
                         .append("filePattern=\"${BASE_FOLDER}/").append(jobName).append("/%d{dd-MM-yyyy}.log.gz\">\n")
                         .append("            <PatternLayout>\n")
-                        .append("                <pattern>[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>\n")
+                        .append("                <pattern>").append(rollingFilePattern).append("</pattern>\n")
                         .append("            </PatternLayout>\n")
                         .append("            <Policies>\n")
                         .append("                <TimeBasedTriggeringPolicy interval=\"2\" modulate=\"true\" />\n")
@@ -200,8 +203,8 @@ public class Log4j2XmlGenerator {
         return rollingFileSection.toString();
     }
 
-    private static void appendLoggerBlock(StringBuilder section, String jobName, String level, List<String> appenderRefs) {
-        section.append("        <Logger name=\"com.quartz.jobs.").append(jobName).append("\" level=\"").append(level).append("\" additivity=\"false\">\n");
+    private static void appendLoggerBlock(StringBuilder section, String jobName, String level, List<String> appenderRefs, String jobPrefix) {
+        section.append("        <Logger name=\"").append(jobPrefix).append(jobName).append("\" level=\"").append(level).append("\" additivity=\"false\">\n");
         for (String appenderRef : appenderRefs) {
             section.append("            <AppenderRef ref=\"").append(appenderRef).append("\"/>\n");
         }

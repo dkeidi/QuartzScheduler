@@ -2,8 +2,6 @@ package com.quartz;
 
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
-import com.quartz.jobs.CopyJob;
-import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
 import com.quartz.util.PropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
@@ -30,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Properties;
 
 @SpringBootApplication
@@ -45,7 +42,9 @@ public class QuartzSchedulerApplication {
 
     @Autowired
 
-    public QuartzSchedulerApplication(SchedulerService scheduler) {QuartzSchedulerApplication.scheduler = scheduler;}
+    public QuartzSchedulerApplication(SchedulerService scheduler) {
+        QuartzSchedulerApplication.scheduler = scheduler;
+    }
 
     public static void main(String[] args) throws SchedulerException, IOException {
         loadProperties();
@@ -58,7 +57,6 @@ public class QuartzSchedulerApplication {
             app._scheduleFixedJobs();
             scheduler.getScheduledJobs();
         }
-
     }
 
     public static void loadProperties() throws IOException {
@@ -70,6 +68,9 @@ public class QuartzSchedulerApplication {
         // Generate log4j2.xml based on job.properties and app.properties
         jobProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "job.properties");
         appProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "application.properties");
+        SchedulerService.setAppProperties(appProperties);
+        SchedulerService.setJobProperties(jobProperties);
+        SchedulerService.setGeneratedLogPath(log4jConfigFilePath);
     }
 
     public static String getJarDir() {
@@ -159,35 +160,9 @@ public class QuartzSchedulerApplication {
             // .run has to come after Configurator for LOG4J2 to work
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
             LoggerContext context = (LoggerContext) LogManager.getContext(false);
-            LOG.info("context");
-            LOG.info(context);
-
             Configuration config = context.getConfiguration();
-            LOG.info("config");
-            LOG.info(config);
 
-            System.out.println("##########LOGGERS############");
-
-            // Inspect loggers
-            config.getLoggers().forEach((name, logger) -> {
-                System.out.println("Logger Name: " + name);
-                System.out.println("Logger Level: " + logger.getLevel());
-                System.out.println("Appender References: ");
-                logger.getAppenderRefs().forEach(ref -> {
-                    System.out.println("    - " + ref.getRef());
-                });
-            });
-
-            System.out.println("##########APPENDERS############");
-
-            // Inspect appenders
-            config.getAppenders().forEach((name, appender) -> {
-                System.out.println("Appender Name: " + name);
-                System.out.println("Appender Type: " + appender.getClass().getName());
-                if (appender.getLayout() != null) {
-                    System.out.println("Appender Layout: " + appender.getLayout().getClass().getName());
-                }
-            });
+//            _xmlDebug(context, config);
 
         } catch (IOException e) {
             LOG.debug(e);
@@ -201,7 +176,7 @@ public class QuartzSchedulerApplication {
             prop.load(externalInput);
 
             String masterCommandValue = prop.getProperty("master.map_drive.command");
-            Boolean isNetworkLocation = Boolean.parseBoolean(prop.getProperty("master.is_network_location"));
+            Boolean isServerScript = Boolean.parseBoolean(prop.getProperty("master.is_server_script"));
 
 
             for (String jobName : prop.stringPropertyNames()) {
@@ -213,7 +188,7 @@ public class QuartzSchedulerApplication {
 
                     LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
 
-                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue, isNetworkLocation);
+                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue, isServerScript);
                 }
             }
 
@@ -224,12 +199,12 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue, Boolean isNetworkLocation) throws SchedulerException {
+    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue, Boolean isServerScript) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobKey)
                 .usingJobData("command", commandValue)
                 .usingJobData("master_command", masterCommandValue)
-                .usingJobData("is_network_location", isNetworkLocation)
+                .usingJobData("is_server_script", isServerScript)
                 .usingJobData("folder", jobKey)
                 .build();
 
@@ -240,4 +215,35 @@ public class QuartzSchedulerApplication {
 
         scheduler.schedule(jobDetail, info, true);
     }
+
+    private static void _xmlDebug(LoggerContext context, Configuration config) {
+        LOG.info("context");
+        LOG.info(context);
+        LOG.info("config");
+        LOG.info(config);
+
+        System.out.println("##########LOGGERS############");
+
+        // Inspect loggers
+        config.getLoggers().forEach((name, logger) -> {
+            System.out.println("Logger Name: " + name);
+            System.out.println("Logger Level: " + logger.getLevel());
+            System.out.println("Appender References: ");
+            logger.getAppenderRefs().forEach(ref -> {
+                System.out.println("    - " + ref.getRef());
+            });
+        });
+
+        System.out.println("##########APPENDERS############");
+
+        // Inspect appenders
+        config.getAppenders().forEach((name, appender) -> {
+            System.out.println("Appender Name: " + name);
+            System.out.println("Appender Type: " + appender.getClass().getName());
+            if (appender.getLayout() != null) {
+                System.out.println("Appender Layout: " + appender.getLayout().getClass().getName());
+            }
+        });
+    }
+
 }

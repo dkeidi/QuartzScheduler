@@ -29,7 +29,7 @@ public class BatchJob extends QuartzJobBean {
 
         String scriptLocation = context.getJobDetail().getJobDataMap().getString("command");
         String masterScriptLocation = context.getJobDetail().getJobDataMap().getString("master_command");
-        Boolean isNetworkLocation = context.getJobDetail().getJobDataMap().getBoolean("is_network_location");
+        Boolean isServerScript = context.getJobDetail().getJobDataMap().getBoolean("is_server_script");
 
         String jobKey = context.getJobDetail().getKey().getName();
         Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
@@ -46,11 +46,11 @@ public class BatchJob extends QuartzJobBean {
 
             while (retries < MAX_RETRIES && !success) {
                 try {
-                    _executeJob(scriptLocation, masterScriptLocation, isNetworkLocation, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId);
+                    _executeJob(scriptLocation, masterScriptLocation, isServerScript, LOG, jobId, context.getJobDetail().getKey().getName(), instanceId);
                     success = true;  // If the job completes successfully, exit loop
                 } catch (IOException | InterruptedException e) {
                     retries++;
-                    LOG.error("Job failed, attempt " + retries + " of " + MAX_RETRIES, e);
+                    LOG.error("Job failed, attempt {} of " + MAX_RETRIES, retries, e);
 
                     if (retries < MAX_RETRIES) {
                         LOG.info("Retrying in " + RETRY_DELAY_MS / 1000 + " seconds...");
@@ -70,10 +70,10 @@ public class BatchJob extends QuartzJobBean {
         }
     }
 
-    private void _executeJob(String scriptLocation, String masterScriptLocation, Boolean isNetworkLocation, Logger LOG, String jobId, String jobName, String instanceId) throws IOException, InterruptedException, JobExecutionException {
+    private void _executeJob(String scriptLocation, String masterScriptLocation, Boolean isServerScript, Logger LOG, String jobId, String jobName, String instanceId) throws IOException, InterruptedException {
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
 
-        JobExecutor.executeJob(scriptLocation, masterScriptLocation, isNetworkLocation, LOG, jobId, jobName, instanceId, LOG_FILENAME);
+        JobExecutor.executeJob(scriptLocation, masterScriptLocation, isServerScript, LOG, jobId, jobName, instanceId, LOG_FILENAME);
 
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executed", LOG_FILENAME, null);
         LOG.info("Job completed successfully");
