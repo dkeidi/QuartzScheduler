@@ -9,6 +9,7 @@ import java.util.Properties;
 public class Log4j2XmlGenerator {
 
     public static void generateLog4j2Xml(Properties jobProperties, Properties appProperties, String filePath, boolean isJDBC) throws IOException {
+        System.out.println("generateLog4j2Xml");
         StringBuilder log4jXml = new StringBuilder();
 
         String serverName = appProperties.getProperty("app.serverNameInString");
@@ -35,6 +36,9 @@ public class Log4j2XmlGenerator {
         try (FileWriter writer = new FileWriter(filePath)) {
             writer.write(log4jXml.toString());
         }
+
+        System.out.println("end generateLog4j2Xml");
+
     }
 
     private static String generateXmlHeader(String log4j2Level) {

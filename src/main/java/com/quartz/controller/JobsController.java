@@ -88,7 +88,57 @@ public class JobsController {
         return new ResponseEntity<>(response.toString(), HttpStatus.OK);
     }
 
+    //// RESUME JOBS ////
+    @PostMapping("/resume")
+    public ResponseEntity<String> resumeJob(String job_name, String job_group) {
+        Map<String, Object> response = new HashMap<>();
+        boolean isResumed = service.resumeJob(job_name, job_group);
+
+        if (isResumed) {
+            response.put("status", "success");
+            response.put("message", job_name + " has been resumed successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", job_name + " could not be resumed. Check if it exists.");
+        }
+
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+    }
+
+    @PostMapping("/resume_all")
+    public ResponseEntity<String> resumeAllJobs() {
+        Map<String, Object> response = new HashMap<>();
+        boolean isPaused = service.resumeAllJobs();
+
+        if (isPaused) {
+            response.put("status", "success");
+            response.put("message", "All jobs has been resumed successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", "Resume all jobs error.");
+        }
+
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+    }
+
+
     //// DELETE JOBS ////
+    @PostMapping("/resume")
+    public ResponseEntity<String> deleteJob(String job_name, String job_group) {
+        Map<String, Object> response = new HashMap<>();
+        boolean isResumed = service.deleteJob(job_name, job_group);
+
+        if (isResumed) {
+            response.put("status", "success");
+            response.put("message", job_name + " has been deleted successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", job_name + " could not be deleted. Check if it exists.");
+        }
+
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+    }
+
 //    @DeleteMapping("/{jobId}")
 //    public Boolean deleteJob(@PathVariable String jobId) {
 //        return service.deleteJob(jobId);

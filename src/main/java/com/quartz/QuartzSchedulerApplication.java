@@ -202,9 +202,11 @@ public class QuartzSchedulerApplication {
                     _scheduleJob(scheduler, jobName, jobGroupValue, cronExp, commandValue, masterCommandValue, isServerScript);
                 }
             }
-
-            scheduler.getScheduledJobs();
             LOG.info("Scheduled all jobs.");
+            LOG.info("Paused all jobs.");
+
+            scheduler.pauseAllJobs();
+            scheduler.getScheduledJobs();
         } catch (IOException | SchedulerException ex) {
             LOG.error("Error scheduling jobs", ex);
         }

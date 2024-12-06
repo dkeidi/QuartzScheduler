@@ -269,6 +269,53 @@ public class SchedulerService {
         return false;
     }
 
+    public boolean pauseAllJobs() {
+        try {
+            scheduler.pauseAll();
+        } catch (SchedulerException e) {
+            LOG.error(e);
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean resumeJob(String jobName, String jobGroup) {
+        JobKey jobKey = JobKey.jobKey(jobName, jobGroup);
+
+        try {
+            scheduler.resumeJob(jobKey);
+
+            // Check if the job is resumed
+            boolean isResumed = _isJobResumed(jobKey);
+
+            if (isResumed) {
+                LOG.info("success");
+                LOG.info("Job '" + jobKey + "' has been resumed successfully.");
+                return true;
+            } else {
+                LOG.info("failed");
+                LOG.info("Job '" + jobKey + "' could not be resumed. It may not exist or is already resumed.");
+                return false;
+            }
+        } catch (SchedulerException e) {
+            LOG.error(e);
+        }
+
+        return false;
+    }
+
+    public boolean resumeAllJobs() {
+        try {
+            scheduler.resumeAll();
+        } catch (SchedulerException e) {
+            LOG.error(e);
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean _isJobPaused(JobKey jobKey) throws SchedulerException {
         // Check if the job exists
         if (!scheduler.checkExists(jobKey)) {
@@ -287,15 +334,47 @@ public class SchedulerService {
         return true; // All triggers are paused
     }
 
-    public boolean pauseAllJobs() {
-        try {
-            scheduler.pauseAll();
-        } catch (SchedulerException e) {
-            LOG.error(e);
+    private boolean _isJobResumed(JobKey jobKey) throws SchedulerException {
+        // Check if the job exists
+        if (!scheduler.checkExists(jobKey)) {
             return false;
         }
 
-        return true;
+        // Retrieve all triggers for the job
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+
+        // Check if all triggers are in the PAUSED state
+        for (Trigger trigger : triggers) {
+            if (!scheduler.getTriggerState(trigger.getKey()).equals(Trigger.TriggerState.NORMAL)) {
+                return false; // Not paused
+            }
+        }
+        return true; // All triggers are paused
+    }
+
+    public boolean deleteJob(String jobName, String jobGroup) {
+        JobKey jobKey = JobKey.jobKey(jobName, jobGroup);
+
+        try {
+            scheduler.deleteJob(jobKey);
+
+            // Check if the job is resumed
+            boolean isResumed = _isJobResumed(jobKey);
+
+            if (isResumed) {
+                LOG.info("success");
+                LOG.info("Job '" + jobKey + "' has been resumed successfully.");
+                return true;
+            } else {
+                LOG.info("failed");
+                LOG.info("Job '" + jobKey + "' could not be resumed. It may not exist or is already resumed.");
+                return false;
+            }
+        } catch (SchedulerException e) {
+            LOG.error(e);
+        }
+
+        return false;
     }
 
     public void shutdownQuartz() throws SchedulerException {
