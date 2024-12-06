@@ -8,8 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/home")
@@ -43,27 +44,62 @@ public class JobsController {
 
     //// CREATE JOBS ////
     @PostMapping("/create_adhoc_job")
-//    public ResponseEntity<TriggerInfo> createAdhoc(String jobKey, Date jobDate, String scriptPath, Boolean scriptOnNetwork) {
-
-    public ResponseEntity<TriggerInfo> createAdhocJob(Boolean is_recurring, String cron_expression, String job_datetime, String job_name, String script_filepath, Boolean is_server_script, String interface_name) {
-        TriggerInfo jobs = null;
+    public ResponseEntity<TriggerInfo> createAdhocJob(Boolean is_recurring, String cron_expression, String job_datetime, String job_name, String script_filepath, Boolean is_server_script, String job_group) {
+        TriggerInfo job = null;
         if (is_recurring) {
-            jobs= service.createRecurringJob(job_name, cron_expression, script_filepath , is_server_script, interface_name);
+            job = service.createRecurringJob(job_name, cron_expression, script_filepath, is_server_script, job_group);
         } else {
-            System.out.println("here");
-            jobs= service.createOneTimeAdhocCopyJob(job_datetime);
+            job = service.createOnetimeJob(job_name, job_datetime, script_filepath, is_server_script, job_group);
         }
 
-        return new ResponseEntity<>(jobs, HttpStatus.OK);
+        return new ResponseEntity<>(job, HttpStatus.OK);
     }
 
-//    @PostMapping("/create/recurring")
+    //// PAUSE JOBS ////
+    @PostMapping("/pause")
+    public ResponseEntity<String> pauseJob(String job_name, String job_group) {
+        Map<String, Object> response = new HashMap<>();
+        boolean isPaused = service.pauseJob(job_name, job_group);
 
+        if (isPaused) {
+            response.put("status", "success");
+            response.put("message", job_name + " has been paused successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", job_name + " could not be paused. Check if it exists.");
+        }
 
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+    }
+
+    @PostMapping("/pause_all")
+    public ResponseEntity<String> pauseAllJobs() {
+        Map<String, Object> response = new HashMap<>();
+        boolean isPaused = service.pauseAllJobs();
+
+        if (isPaused) {
+            response.put("status", "success");
+            response.put("message", "All jobs has been paused successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", "Pause all jobs error.");
+        }
+
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+    }
 
     //// DELETE JOBS ////
 //    @DeleteMapping("/{jobId}")
 //    public Boolean deleteJob(@PathVariable String jobId) {
 //        return service.deleteJob(jobId);
 //    }
+
+    //// SHUTDOWN APPLICATION ////
+    @GetMapping("/shutdown")
+    public ResponseEntity<List<TriggerInfo>> shutdown() throws SchedulerException {
+        service.shutdownQuartz();
+        System.exit(0);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

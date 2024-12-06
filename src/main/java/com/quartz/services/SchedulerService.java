@@ -58,7 +58,6 @@ public class SchedulerService {
         if (isCron) {
             cronTrigger = SchedulerBuilder.buildCronTrigger(jobDetail.getJobClass(), info);
         } else {
-
             simpleTrigger = SchedulerBuilder.buildSimpleTrigger(jobDetail.getJobClass(), info);
         }
 
@@ -76,24 +75,6 @@ public class SchedulerService {
                 scheduler.scheduleJob(jobDetail, simpleTrigger);
             }
 
-        } catch (SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    public <T extends Job> void scheduleManual(final Class<T> jobClass, final TriggerInfo info) {
-        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
-        final CronTrigger trigger = SchedulerBuilder.buildCronTrigger(jobClass, info);
-
-        try {
-            LOG.info("{} job scheduled.", info.getCallbackData());
-            LOG.info("Job key is {}.", jobDetail.getKey());
-
-            if (scheduler.checkExists(jobDetail.getKey())) {
-                scheduler.deleteJob(jobDetail.getKey());
-            }
-
-            scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -190,29 +171,53 @@ public class SchedulerService {
         }
     }
 
+    public <T extends Job> void scheduleManual(final Class<T> jobClass, final TriggerInfo info) {
+        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
+        final CronTrigger trigger = SchedulerBuilder.buildCronTrigger(jobClass, info);
+
+        try {
+            LOG.info("{} job scheduled.", info.getCallbackData());
+            LOG.info("Job key is {}.", jobDetail.getKey());
+
+            if (scheduler.checkExists(jobDetail.getKey())) {
+                scheduler.deleteJob(jobDetail.getKey());
+            }
+
+            scheduler.scheduleJob(jobDetail, trigger);
+        } catch (SchedulerException e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    // for testing
     public TriggerInfo createRecurringAdhocCopyJob() {
         JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob")
+                .withIdentity("CopyJob", "TEST")
                 .build();
 
         TriggerInfo info = new TriggerInfo();
         info.setCronExp("0 51 16 * * ?");
         info.setCallbackData("CopyJob");
         info.setJobName("CopyJob");
+        info.setJobGroup("TEST");
 
         schedule(jobDetail, info, true);
+        addAdHocJobLogger("CopyJob");
+
         return info;
     }
 
+    // for testing
     public TriggerInfo createOneTimeAdhocCopyJob(String jobDatetime) {
         JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob")
+                .withIdentity("CopyJob", "TEST")
                 .build();
 
         TriggerInfo info = new TriggerInfo();
         info.setJobDatetime(jobDatetime);
         info.setCallbackData("CopyJob");
         info.setJobName("CopyJob");
+        info.setJobGroup("TEST");
 
         schedule(jobDetail, info, false);
         addAdHocJobLogger("CopyJob");
@@ -221,73 +226,80 @@ public class SchedulerService {
 
     }
 
-    public TriggerInfo createOnetimeJob(String jobKey, String jobDatetime, String commandValue, Boolean isServerScript, String groupName) {
-        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
-
-        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
-                .withIdentity(jobKey, groupName)
-                .usingJobData("command", commandValue)
-                .usingJobData("master_command", masterCommandValue)
-                .usingJobData("is_server_script", isServerScript)
-                .usingJobData("folder", jobKey)
-                .build();
-
-        TriggerInfo info = new TriggerInfo();
-        info.setJobDatetime(jobDatetime);
-        info.setCallbackData(jobKey);
-        info.setJobName(jobKey);
-
-        schedule(jobDetail, info, true);
-
-        addAdHocJobLogger(jobKey);
+    public TriggerInfo createOnetimeJob(String jobName, String jobDatetime, String commandValue, Boolean isServerScript, String jobGroup) {
+        JobDetail jobDetail = _createJobDetail(jobName, commandValue, isServerScript, jobGroup);
+        TriggerInfo info = _createJobTrigger(false, jobDatetime, jobName, jobGroup);
+        schedule(jobDetail, info, false);
+        addAdHocJobLogger(jobName);
 
         return info;
     }
 
-    public TriggerInfo createRecurringJob(String jobKey, String jobCronExp, String commandValue, Boolean isServerScript, String groupName) {
-        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
-
-        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
-                .withIdentity(jobKey)
-                .usingJobData("command", commandValue)
-                .usingJobData("master_command", masterCommandValue)
-                .usingJobData("is_server_script", isServerScript)
-                .usingJobData("folder", jobKey)
-                .build();
-
-        TriggerInfo info = new TriggerInfo();
-        info.setCronExp(jobCronExp);
-        info.setCallbackData(jobKey);
-        info.setJobName(jobKey);
-
+    public TriggerInfo createRecurringJob(String jobName, String jobCronExp, String commandValue, Boolean isServerScript, String jobGroup) {
+        JobDetail jobDetail = _createJobDetail(jobName, commandValue, isServerScript, jobGroup);
+        TriggerInfo info = _createJobTrigger(true, jobCronExp, jobName, jobGroup);
         schedule(jobDetail, info, true);
-
-        addAdHocJobLogger(jobKey);
+        addAdHocJobLogger(jobName);
 
         return info;
     }
 
-    public TriggerInfo createRecurringAdhocJob(String jobKey, String jobCronExp, String commandValue, Boolean isServerScript) {
-        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
+    public boolean pauseJob(String jobName, String jobGroup) {
+        JobKey jobKey = JobKey.jobKey(jobName, jobGroup);
 
-        JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
-                .withIdentity(jobKey)
-                .usingJobData("command", commandValue)
-                .usingJobData("master_command", masterCommandValue)
-                .usingJobData("is_server_script", isServerScript)
-                .usingJobData("folder", jobKey)
-                .build();
+        try {
+            scheduler.pauseJob(jobKey);
 
-        TriggerInfo info = new TriggerInfo();
-        info.setCronExp(jobCronExp);
-        info.setCallbackData(jobKey);
-        info.setJobName(jobKey);
+            // Check if the job is paused
+            boolean isPaused = _isJobPaused(jobKey);
 
-        schedule(jobDetail, info, true);
+            if (isPaused) {
+                LOG.info("success");
+                LOG.info("Job '" + jobKey + "' has been paused successfully.");
+                return true;
+            } else {
+                LOG.info("failed");
+                LOG.info("Job '" + jobKey + "' could not be paused. It may not exist or is already paused.");
+                return false;
+            }
+        } catch (SchedulerException e) {
+            LOG.error(e);
+        }
 
-        addAdHocJobLogger(jobKey);
+        return false;
+    }
 
-        return info;
+    private boolean _isJobPaused(JobKey jobKey) throws SchedulerException {
+        // Check if the job exists
+        if (!scheduler.checkExists(jobKey)) {
+            return false;
+        }
+
+        // Retrieve all triggers for the job
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+
+        // Check if all triggers are in the PAUSED state
+        for (Trigger trigger : triggers) {
+            if (!scheduler.getTriggerState(trigger.getKey()).equals(Trigger.TriggerState.PAUSED)) {
+                return false; // Not paused
+            }
+        }
+        return true; // All triggers are paused
+    }
+
+    public boolean pauseAllJobs() {
+        try {
+            scheduler.pauseAll();
+        } catch (SchedulerException e) {
+            LOG.error(e);
+            return false;
+        }
+
+        return true;
+    }
+
+    public void shutdownQuartz() throws SchedulerException {
+        scheduler.shutdown(true);
     }
 
     public static void addAdHocJobLogger(String jobKey) {
@@ -379,6 +391,35 @@ public class SchedulerService {
         } catch (IOException e) {
             LOG.error(e);
         }
+    }
+
+    private JobDetail _createJobDetail(String jobName, String commandValue, Boolean isServerScript, String jobGroup) {
+        String masterCommandValue = jobProperties.getProperty("master.map_drive.command");
+
+        return JobBuilder.newJob(BatchJob.class)
+                .withIdentity(jobName, jobGroup)
+                .usingJobData("command", commandValue)
+                .usingJobData("master_command", masterCommandValue)
+                .usingJobData("is_server_script", isServerScript)
+                .usingJobData("folder", jobName)
+                .build();
+    }
+
+    private TriggerInfo _createJobTrigger(boolean isRecurring, String triggerValue, String jobName, String jobGroup) {
+        TriggerInfo info = new TriggerInfo();
+        if (isRecurring) {
+            info.setCronExp(triggerValue);
+        } else {
+            info.setJobDatetime(triggerValue);
+        }
+
+        info.setCallbackData(jobName);
+        info.setJobName(jobName);
+        info.setJobGroup(jobGroup);
+        info.setTriggerName(jobName);
+        info.setTriggerGroup(jobGroup);
+
+        return info;
     }
 
     private static void _xmlDebug(Configuration config) {
