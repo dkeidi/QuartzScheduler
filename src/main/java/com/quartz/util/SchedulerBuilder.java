@@ -32,7 +32,7 @@ public final class SchedulerBuilder {
         CronScheduleBuilder cron = cronSchedule(info.getCronExp()).withMisfireHandlingInstructionIgnoreMisfires();
 
         return newTrigger()
-                .withIdentity(info.getJobName())
+                .withIdentity(info.getJobName(), info.getJobGroup())
                 .withSchedule(cron)
                 .build();
     }
@@ -44,10 +44,10 @@ public final class SchedulerBuilder {
         // Check if jobDatetime is empty
         if (info.getJobDatetime() == null || info.getJobDatetime().isEmpty()) {
             dateTime = LocalDateTime.now(); // Use current time
-            System.out.println("Job datetime is empty. Using current datetime: " + dateTime);
+//            System.out.println("Job datetime is empty. Using current datetime: " + dateTime);
         } else {
             dateTime = LocalDateTime.parse(info.getJobDatetime(), formatter);
-            System.out.println("Parsed DateTime: " + dateTime);
+//            System.out.println("Parsed DateTime: " + dateTime);
         }
 
         // Convert LocalDateTime to Date

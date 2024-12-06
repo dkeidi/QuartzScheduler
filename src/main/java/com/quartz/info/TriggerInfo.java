@@ -10,10 +10,18 @@ public class TriggerInfo implements Serializable {
     private String callbackData;
     private String scriptLocation;
     private String jobName;
+    private String jobGroup;
+    private String triggerName;
+    private String triggerGroup;
     private String jobDatetime;
     private long repeatIntervalMs = 0;
     private long initialOffsetMs = 0;
     private int repeatCount = 0;
+    private Date nextFireTime;
+
+    public String getJobName() { return jobName; }
+
+    public void setJobName(String jobName) { this.jobName = jobName; }
 
     public String getJobGroup() {
         return jobGroup;
@@ -23,20 +31,19 @@ public class TriggerInfo implements Serializable {
         this.jobGroup = jobGroup;
     }
 
+    public String getTriggerName() { return triggerName; }
+
+    public void setTriggerName(String triggerName) { this.triggerName = triggerName; }
+
+    public String getTriggerGroup() { return triggerGroup; }
+
+    public void setTriggerGroup(String triggerGroup) { this.triggerGroup = triggerGroup; }
+
     public Date getNextFireTime() {
         return nextFireTime;
     }
 
-    public void setNextFireTime(Date nextFireTime) {
-        this.nextFireTime = nextFireTime;
-    }
-
-    private String jobGroup;
-    private Date nextFireTime;
-
-    public String getJobName() { return jobName; }
-
-    public void setJobName(String jobName) { this.jobName = jobName; }
+    public void setNextFireTime(Date nextFireTime) { this.nextFireTime = nextFireTime; }
 
     public String getJobDatetime() { return jobDatetime; }
 
@@ -46,37 +53,21 @@ public class TriggerInfo implements Serializable {
 
     public void setScriptLocation(String scriptLocation) { this.scriptLocation = scriptLocation; }
 
-    public boolean isRunForever() {
-        return runForever;
-    }
+    public boolean isRunForever() { return runForever; }
 
-    public void setRunForever(boolean runForever) {
-        this.runForever = runForever;
-    }
+    public void setRunForever(boolean runForever) { this.runForever = runForever; }
 
-    public int getRemainingFireCount() {
-        return remainingFireCount;
-    }
+    public int getRemainingFireCount() { return remainingFireCount; }
 
-    public void setRemainingFireCount(int remainingFireCount) {
-        this.remainingFireCount = remainingFireCount;
-    }
+    public void setRemainingFireCount(int remainingFireCount) { this.remainingFireCount = remainingFireCount; }
 
-    public String getCronExp() {
-        return cronExp;
-    }
+    public String getCronExp() { return cronExp; }
 
-    public void setCronExp(String cronExp) {
-        this.cronExp = cronExp;
-    }
+    public void setCronExp(String cronExp) { this.cronExp = cronExp; }
 
-    public String getCallbackData() {
-        return callbackData;
-    }
+    public String getCallbackData() { return callbackData; }
 
-    public void setCallbackData(String callbackData) {
-        this.callbackData = callbackData;
-    }
+    public void setCallbackData(String callbackData) { this.callbackData = callbackData; }
 
     public long getInitialOffsetMs() { return initialOffsetMs; }
 

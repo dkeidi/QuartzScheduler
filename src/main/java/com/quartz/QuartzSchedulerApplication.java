@@ -60,20 +60,25 @@ public class QuartzSchedulerApplication {
     }
 
     public static void loadProperties() throws IOException {
+        System.out.println("loadProperties");
         // Determine the directory of the JAR file
         String jarDir = getJarDir();
         // Specify the location for log4j2.xml
         log4jConfigFilePath = jarDir + File.separator + "log4j2.xml";
-        System.out.println(log4jConfigFilePath);
+        System.out.println("log4jConfigFilePath: " + log4jConfigFilePath);
         // Generate log4j2.xml based on job.properties and app.properties
         jobProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "job.properties");
+        System.out.println("jobProperties: " + jarDir + File.separator + "job.properties");
         appProperties = PropertiesLoader.loadProperties(jarDir + File.separator + "application.properties");
         SchedulerService.setAppProperties(appProperties);
         SchedulerService.setJobProperties(jobProperties);
         SchedulerService.setGeneratedLogPath(log4jConfigFilePath);
+        System.out.println("end loadProperties");
+
     }
 
     public static String getJarDir() {
+        System.out.println("getJarDir");
         try {
             // Retrieve the path as a URL and convert it to a URI
             URI uri = QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -86,6 +91,7 @@ public class QuartzSchedulerApplication {
 
             // Convert to a String and remove the prefix if it starts with "jar:"
             String path = uri.toString();
+            System.out.println(path);
 
             if (path.startsWith("jar:")) {
                 path = path.substring(4); // Strip off "jar:"
@@ -145,6 +151,7 @@ public class QuartzSchedulerApplication {
     }
 
     private static void _jobsFromExternalProperties(String[] args) {
+        System.out.println("_jobsFromExternalProperties");
         try {
             Log4j2XmlGenerator.generateLog4j2Xml(jobProperties, appProperties, log4jConfigFilePath, Boolean.parseBoolean(appProperties.getProperty("app.isJDBC")));
 
@@ -159,9 +166,8 @@ public class QuartzSchedulerApplication {
 
             // .run has to come after Configurator for LOG4J2 to work
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
-            LoggerContext context = (LoggerContext) LogManager.getContext(false);
-            Configuration config = context.getConfiguration();
-
+//            LoggerContext context = (LoggerContext) LogManager.getContext(false);
+//            Configuration config = context.getConfiguration();
 //            _xmlDebug(context, config);
 
         } catch (IOException e) {
@@ -170,6 +176,8 @@ public class QuartzSchedulerApplication {
     }
 
     private void _scheduleJobsFromProperties(SchedulerService scheduler) {
+        System.out.println("_scheduleJobsFromProperties");
+        System.out.println(Paths.get("job.properties"));
         try (InputStream externalInput = Files.newInputStream(Paths.get("job.properties"))) {
 
             Properties prop = new Properties();
@@ -178,17 +186,20 @@ public class QuartzSchedulerApplication {
             String masterCommandValue = prop.getProperty("master.map_drive.command");
             Boolean isServerScript = Boolean.parseBoolean(prop.getProperty("master.is_server_script"));
 
-
-            for (String jobName : prop.stringPropertyNames()) {
-                if (jobName.startsWith("job.") && jobName.endsWith(".cron")) {
-                    String jobKey = jobName.substring(4, jobName.length() - 5); // Remove the ".cron" suffix
-                    String cronExp = prop.getProperty(jobName);
-                    String commandKey = "job." + jobKey + ".command";
+            for (String jobProperty : prop.stringPropertyNames()) {
+                if (jobProperty.startsWith("job.") && jobProperty.endsWith(".cron")) {
+                    String jobName = jobProperty.substring(4, jobProperty.length() - 5); // Remove the ".cron" suffix
+                    String cronExp = prop.getProperty(jobProperty);
+                    String commandKey = "job." + jobName + ".command";
                     String commandValue = prop.getProperty(commandKey);
+                    String jobGroupKey = "job." + jobName + ".jobgroup";
+                    String jobGroupValue = prop.getProperty(jobGroupKey);
+                    String triggerGroupKey = "job." + jobName + ".triggergroup";
+                    String triggerGroupValue = prop.getProperty(triggerGroupKey);
 
-                    LOG.info("Processing job: {}, cron: {}, command: {}", jobKey, cronExp, commandValue);
+                    LOG.info("Processing job: {}, cron: {}, command: {}", jobName, cronExp, commandValue);
 
-                    _scheduleJob(scheduler, jobKey, cronExp, commandValue, masterCommandValue, isServerScript);
+                    _scheduleJob(scheduler, jobName, jobGroupValue, cronExp, commandValue, masterCommandValue, isServerScript);
                 }
             }
 
@@ -199,19 +210,22 @@ public class QuartzSchedulerApplication {
         }
     }
 
-    private void _scheduleJob(SchedulerService scheduler, String jobKey, String cronExp, String commandValue, String masterCommandValue, Boolean isServerScript) throws SchedulerException {
+    private void _scheduleJob(SchedulerService scheduler, String jobName, String jobGroup, String cronExp, String commandValue, String masterCommandValue, Boolean isServerScript) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(BatchJob.class)
-                .withIdentity(jobKey)
+                .withIdentity(jobName, jobGroup)
                 .usingJobData("command", commandValue)
                 .usingJobData("master_command", masterCommandValue)
                 .usingJobData("is_server_script", isServerScript)
-                .usingJobData("folder", jobKey)
+                .usingJobData("folder", jobName)
                 .build();
 
         TriggerInfo info = new TriggerInfo();
         info.setCronExp(cronExp);
-        info.setCallbackData(jobKey);
-        info.setJobName(jobKey);
+        info.setCallbackData(jobName);
+        info.setJobName(jobName);
+        info.setJobGroup(jobGroup);
+        info.setTriggerName(jobName);
+        info.setTriggerGroup(jobGroup);
 
         scheduler.schedule(jobDetail, info, true);
     }

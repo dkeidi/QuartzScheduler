@@ -31,15 +31,14 @@ public class BatchJob extends QuartzJobBean {
         String masterScriptLocation = context.getJobDetail().getJobDataMap().getString("master_command");
         Boolean isServerScript = context.getJobDetail().getJobDataMap().getBoolean("is_server_script");
 
-        String jobKey = context.getJobDetail().getKey().getName();
-        Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobKey);
+        String jobName = context.getJobDetail().getKey().getName();
+        Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobName);
 
-        LOG.info("jobKey: ", jobKey);
+        LOG.info("jobName: ", jobName);
         try {
             jobId = UUID.randomUUID().toString();  // Generate a UUID for job
             instanceId = scheduler.getSchedulerInstanceId();
             CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executing", LOG_FILENAME, null);
-
 
             int retries = 0;
             boolean success = false;
