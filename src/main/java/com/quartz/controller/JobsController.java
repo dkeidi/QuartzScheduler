@@ -123,7 +123,7 @@ public class JobsController {
 
 
     //// DELETE JOBS ////
-    @PostMapping("/resume")
+    @PostMapping("/delete")
     public ResponseEntity<String> deleteJob(String job_name, String job_group) {
         Map<String, Object> response = new HashMap<>();
         boolean isResumed = service.deleteJob(job_name, job_group);
