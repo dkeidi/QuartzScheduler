@@ -47,7 +47,9 @@ public class TriggerInfo implements Serializable {
 
     public String getJobDatetime() { return jobDatetime; }
 
-    public void setJobDatetime(String jobDatetime) { System.out.println(jobDatetime); this.jobDatetime = jobDatetime; }
+    public void setJobDatetime(String jobDatetime) {
+//        System.out.println(jobDatetime);
+        this.jobDatetime = jobDatetime; }
 
     public String getScriptLocation() { return scriptLocation; }
 

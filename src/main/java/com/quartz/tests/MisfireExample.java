@@ -1,22 +1,17 @@
 package com.quartz.tests;
 
+import com.quartz.jobs.StatefulDumbJob;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+import java.util.Date;
+
 import static org.quartz.DateBuilder.nextGivenSecondDate;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-
-import com.quartz.jobs.StatefulDumbJob;
-import org.apache.logging.log4j.LogManager;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerFactory;
-import org.quartz.SchedulerMetaData;
-import org.quartz.SimpleTrigger;
-import org.quartz.impl.StdSchedulerFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Date;
 
 /**
  * Demonstrates the behavior of <code>StatefulJob</code>s, as well as how misfire instructions affect the firings of

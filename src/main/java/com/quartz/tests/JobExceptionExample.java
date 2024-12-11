@@ -1,24 +1,20 @@
 package com.quartz.tests;
 
+import com.quartz.jobs.BadJob1;
+import com.quartz.jobs.BadJob2;
+import com.quartz.util.CustomLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+import java.util.Date;
+import java.util.UUID;
+
 import static org.quartz.DateBuilder.nextGivenSecondDate;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-
-import com.quartz.jobs.BadJob1;
-import com.quartz.jobs.BadJob2;
-import com.quartz.util.CustomLogger;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerFactory;
-import org.quartz.SchedulerMetaData;
-import org.quartz.SimpleTrigger;
-import org.quartz.impl.StdSchedulerFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.Date;
-import java.util.UUID;
 
 /**
  * This job demonstrates how Quartz can handle JobExecutionExceptions that are thrown by jobs.

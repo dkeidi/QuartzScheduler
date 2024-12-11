@@ -2,7 +2,8 @@ package com.quartz.services;
 
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
-import com.quartz.jobs.CopyJob;
+import com.quartz.model.JobResult;
+import com.quartz.util.JobUtils;
 import com.quartz.util.SchedulerBuilder;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -16,8 +17,10 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.quartz.QuartzDataSource;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -33,6 +36,51 @@ public class SchedulerService {
     public static Properties appProperties;
     public static Properties jobProperties;
     public static String generatedLogPath;
+    private final DataSource dataSource;
+
+    @Autowired
+    public SchedulerService(final Scheduler scheduler, @QuartzDataSource DataSource dataSource) {
+        this.scheduler = scheduler;
+        this.dataSource = dataSource;
+    }
+
+    public <T extends Job> boolean schedule(final JobDetail jobDetail, final TriggerInfo info, final boolean isCron) {
+        CronTrigger cronTrigger = null;
+        Trigger simpleTrigger = null;
+
+        if (isCron) {
+            cronTrigger = SchedulerBuilder.buildCronTrigger(jobDetail.getJobClass(), info);
+        } else {
+            simpleTrigger = SchedulerBuilder.buildSimpleTrigger(jobDetail.getJobClass(), info);
+        }
+
+        try {
+
+            if (scheduler.checkExists(jobDetail.getKey())) {
+//                scheduler.deleteJob(jobDetail.getKey());
+                LOG.error("Job: {} under Group: {} exists in the system, please create with a different name.", jobDetail.getKey().getName(), jobDetail.getKey().getGroup());
+                return false;
+            } else {
+                LOG.info("{} job scheduled.", info.getCallbackData());
+                LOG.info("Job key is {}.", jobDetail.getKey());
+
+                if (isCron) {
+                    LOG.info("Job trigger is {}.", cronTrigger);
+                    scheduler.scheduleJob(jobDetail, cronTrigger);
+                } else {
+                    LOG.info("Job trigger is {}.", simpleTrigger);
+                    scheduler.scheduleJob(jobDetail, simpleTrigger);
+                }
+                return true;
+            }
+
+
+        } catch (SchedulerException e) {
+            LOG.error(e.getMessage(), e);
+        }
+
+        return false;
+    }
 
     public Scheduler getScheduler() {
         return scheduler;
@@ -48,40 +96,6 @@ public class SchedulerService {
 
     public static void setGeneratedLogPath(String generatedLogPath) {
         SchedulerService.generatedLogPath = generatedLogPath;
-    }
-
-    @Autowired
-    public SchedulerService(final Scheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
-    public <T extends Job> void schedule(final JobDetail jobDetail, final TriggerInfo info, final boolean isCron) {
-        CronTrigger cronTrigger = null;
-        Trigger simpleTrigger = null;
-
-        if (isCron) {
-            cronTrigger = SchedulerBuilder.buildCronTrigger(jobDetail.getJobClass(), info);
-        } else {
-            simpleTrigger = SchedulerBuilder.buildSimpleTrigger(jobDetail.getJobClass(), info);
-        }
-
-        try {
-            LOG.info("{} job scheduled.", info.getCallbackData());
-            LOG.info("Job key is {}.", jobDetail.getKey());
-
-            if (scheduler.checkExists(jobDetail.getKey())) {
-                scheduler.deleteJob(jobDetail.getKey());
-            }
-
-            if (isCron) {
-                scheduler.scheduleJob(jobDetail, cronTrigger);
-            } else {
-                scheduler.scheduleJob(jobDetail, simpleTrigger);
-            }
-
-        } catch (SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-        }
     }
 
     public List<TriggerInfo> getScheduledJobs() throws SchedulerException {
@@ -175,77 +189,59 @@ public class SchedulerService {
         }
     }
 
-    public <T extends Job> void scheduleManual(final Class<T> jobClass, final TriggerInfo info) {
-        final JobDetail jobDetail = SchedulerBuilder.buildJobDetail(jobClass, info);
-        final CronTrigger trigger = SchedulerBuilder.buildCronTrigger(jobClass, info);
-
-        try {
-            LOG.info("{} job scheduled.", info.getCallbackData());
-            LOG.info("Job key is {}.", jobDetail.getKey());
-
-            if (scheduler.checkExists(jobDetail.getKey())) {
-                scheduler.deleteJob(jobDetail.getKey());
-            }
-
-            scheduler.scheduleJob(jobDetail, trigger);
-        } catch (SchedulerException e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
+    // for testing
+//    public TriggerInfo createRecurringAdhocCopyJob() {
+//        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+//                .withIdentity("CopyJob", "TEST")
+//                .build();
+//
+//        TriggerInfo info = new TriggerInfo();
+//        info.setCronExp("0 51 16 * * ?");
+//        info.setCallbackData("CopyJob");
+//        info.setJobName("CopyJob");
+//        info.setJobGroup("TEST");
+//
+//        schedule(jobDetail, info, true);
+//        addAdHocJobLogger("CopyJob");
+//
+//        return info;
+//    }
 
     // for testing
-    public TriggerInfo createRecurringAdhocCopyJob() {
-        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob", "TEST")
-                .build();
+//    public TriggerInfo createOneTimeAdhocCopyJob(String jobDatetime) {
+//        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+//                .withIdentity("CopyJob", "TEST")
+//                .build();
+//
+//        TriggerInfo info = new TriggerInfo();
+//        info.setJobDatetime(jobDatetime);
+//        info.setCallbackData("CopyJob");
+//        info.setJobName("CopyJob");
+//        info.setJobGroup("TEST");
+//
+//        schedule(jobDetail, info, false);
+//        addAdHocJobLogger("CopyJob");
+//
+//        return info;
+//
+//    }
 
-        TriggerInfo info = new TriggerInfo();
-        info.setCronExp("0 51 16 * * ?");
-        info.setCallbackData("CopyJob");
-        info.setJobName("CopyJob");
-        info.setJobGroup("TEST");
-
-        schedule(jobDetail, info, true);
-        addAdHocJobLogger("CopyJob");
-
-        return info;
-    }
-
-    // for testing
-    public TriggerInfo createOneTimeAdhocCopyJob(String jobDatetime) {
-        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob", "TEST")
-                .build();
-
-        TriggerInfo info = new TriggerInfo();
-        info.setJobDatetime(jobDatetime);
-        info.setCallbackData("CopyJob");
-        info.setJobName("CopyJob");
-        info.setJobGroup("TEST");
-
-        schedule(jobDetail, info, false);
-        addAdHocJobLogger("CopyJob");
-
-        return info;
-
-    }
-
-    public TriggerInfo createOnetimeJob(String jobName, String jobDatetime, String commandValue, Boolean isServerScript, String jobGroup) {
+    public JobResult createOnetimeJob(String jobName, String jobDatetime, String commandValue, Boolean isServerScript, String jobGroup) {
         JobDetail jobDetail = _createJobDetail(jobName, commandValue, isServerScript, jobGroup);
         TriggerInfo info = _createJobTrigger(false, jobDatetime, jobName, jobGroup);
-        schedule(jobDetail, info, false);
+        boolean result = schedule(jobDetail, info, false);
         addAdHocJobLogger(jobName);
 
-        return info;
+        return new JobResult(info, result);
     }
 
-    public TriggerInfo createRecurringJob(String jobName, String jobCronExp, String commandValue, Boolean isServerScript, String jobGroup) {
+    public JobResult createRecurringJob(String jobName, String jobCronExp, String commandValue, Boolean isServerScript, String jobGroup) {
         JobDetail jobDetail = _createJobDetail(jobName, commandValue, isServerScript, jobGroup);
         TriggerInfo info = _createJobTrigger(true, jobCronExp, jobName, jobGroup);
-        schedule(jobDetail, info, true);
+        boolean result = schedule(jobDetail, info, true);
         addAdHocJobLogger(jobName);
 
-        return info;
+        return new JobResult(info, result);
     }
 
     public boolean pauseJob(String jobName, String jobGroup) {
@@ -356,24 +352,16 @@ public class SchedulerService {
         return true; // All triggers are paused
     }
 
+    public boolean softDeleteJob(String jobName, String jobGroup) {
+        JobUtils jobUtils = new JobUtils(dataSource);
+        return jobUtils.softDeleteJob(jobName, jobGroup);
+    }
+
     public boolean deleteJob(String jobName, String jobGroup) {
         JobKey jobKey = JobKey.jobKey(jobName, jobGroup);
 
         try {
-            scheduler.deleteJob(jobKey);
-
-            // Check if the job is resumed
-            boolean isResumed = _isJobResumed(jobKey);
-
-            if (isResumed) {
-                LOG.info("success");
-                LOG.info("Job '" + jobKey + "' has been resumed successfully.");
-                return true;
-            } else {
-                LOG.info("failed");
-                LOG.info("Job '" + jobKey + "' could not be resumed. It may not exist or is already resumed.");
-                return false;
-            }
+            return scheduler.deleteJob(jobKey);
         } catch (SchedulerException e) {
             LOG.error(e);
         }
@@ -481,6 +469,7 @@ public class SchedulerService {
 
         return JobBuilder.newJob(BatchJob.class)
                 .withIdentity(jobName, jobGroup)
+                .storeDurably()
                 .usingJobData("command", commandValue)
                 .usingJobData("master_command", masterCommandValue)
                 .usingJobData("is_server_script", isServerScript)

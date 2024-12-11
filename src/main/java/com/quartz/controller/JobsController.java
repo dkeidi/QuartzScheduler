@@ -1,6 +1,7 @@
 package com.quartz.controller;
 
 import com.quartz.info.TriggerInfo;
+import com.quartz.model.JobResult;
 import com.quartz.services.SchedulerService;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +45,17 @@ public class JobsController {
 
     //// CREATE JOBS ////
     @PostMapping("/create_adhoc_job")
-    public ResponseEntity<TriggerInfo> createAdhocJob(Boolean is_recurring, String cron_expression, String job_datetime, String job_name, String script_filepath, Boolean is_server_script, String job_group) {
-        TriggerInfo job = null;
+    public ResponseEntity<JobResult> createAdhocJob(Boolean is_recurring, String cron_expression, String job_datetime, String job_name, String script_filepath, Boolean is_server_script, String job_group) {
+        JobResult job = null;
+
         if (is_recurring) {
             job = service.createRecurringJob(job_name, cron_expression, script_filepath, is_server_script, job_group);
         } else {
             job = service.createOnetimeJob(job_name, job_datetime, script_filepath, is_server_script, job_group);
         }
 
-        return new ResponseEntity<>(job, HttpStatus.OK);
+        HttpStatus status = job.isSuccess() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
+        return new ResponseEntity<>(job, status);
     }
 
     //// PAUSE JOBS ////
@@ -123,12 +126,12 @@ public class JobsController {
 
 
     //// DELETE JOBS ////
-    @PostMapping("/delete")
-    public ResponseEntity<String> deleteJob(String job_name, String job_group) {
+    @PostMapping("/soft_delete")
+    public ResponseEntity<String> softDeleteJob(String job_name, String job_group) {
         Map<String, Object> response = new HashMap<>();
-        boolean isResumed = service.deleteJob(job_name, job_group);
+        boolean isDeleted = service.softDeleteJob(job_name, job_group);
 
-        if (isResumed) {
+        if (isDeleted) {
             response.put("status", "success");
             response.put("message", job_name + " has been deleted successfully.");
         } else {
@@ -139,10 +142,21 @@ public class JobsController {
         return new ResponseEntity<>(response.toString(), HttpStatus.OK);
     }
 
-//    @DeleteMapping("/{jobId}")
-//    public Boolean deleteJob(@PathVariable String jobId) {
-//        return service.deleteJob(jobId);
-//    }
+    @DeleteMapping("/delete")
+    public Boolean deleteJob(String job_name, String job_group) {
+        Map<String, Object> response = new HashMap<>();
+        boolean isDeleted = service.deleteJob(job_name, job_group);
+
+        if (isDeleted) {
+            response.put("status", "success");
+            response.put("message", job_name + " has been deleted successfully.");
+        } else {
+            response.put("status", "failure");
+            response.put("message", job_name + " could not be deleted. Check if it exists.");
+        }
+
+        return new ResponseEntity<>(response.toString(), HttpStatus.OK).hasBody();
+    }
 
     //// SHUTDOWN APPLICATION ////
     @GetMapping("/shutdown")

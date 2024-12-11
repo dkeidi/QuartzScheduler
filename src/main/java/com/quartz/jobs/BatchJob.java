@@ -15,7 +15,6 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.UUID;
 
 public class BatchJob extends QuartzJobBean {
@@ -97,7 +96,6 @@ public class BatchJob extends QuartzJobBean {
     }
 
     private char getJobDeletionStatus(String jobName, String jobGroup) {
-        System.out.println("BatchJob.getJobDeletionStatus");
         JobUtils jobUtils = new JobUtils(dataSource);
         return jobUtils.getJobDeletionStatus(jobName, jobGroup);
     }
