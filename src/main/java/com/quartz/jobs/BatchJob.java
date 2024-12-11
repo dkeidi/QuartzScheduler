@@ -2,15 +2,20 @@ package com.quartz.jobs;
 
 import com.quartz.util.CustomLogger;
 import com.quartz.util.JobExecutor;
+import com.quartz.util.JobUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.quartz.QuartzDataSource;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.UUID;
 
 public class BatchJob extends QuartzJobBean {
@@ -19,6 +24,13 @@ public class BatchJob extends QuartzJobBean {
 
     private static final int MAX_RETRIES = 3;
     private static final int RETRY_DELAY_MS = 5000;
+
+    private final DataSource dataSource;
+
+    @Autowired
+    public BatchJob(@QuartzDataSource DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
@@ -33,8 +45,14 @@ public class BatchJob extends QuartzJobBean {
 
         String jobName = context.getJobDetail().getKey().getName();
         Logger LOG = LogManager.getLogger("com.quartz.jobs." + jobName);
+        LOG.info("Job Name: {}", jobName);
 
-        LOG.info("jobName: ", jobName);
+        char isDeleted = getJobDeletionStatus(jobName, context.getJobDetail().getKey().getGroup());
+        if (isDeleted == 'Y') {
+            LOG.info("Job has been deleted and will not be run.");
+            return;
+        }
+
         try {
             jobId = UUID.randomUUID().toString();  // Generate a UUID for job
             instanceId = scheduler.getSchedulerInstanceId();
@@ -76,5 +94,11 @@ public class BatchJob extends QuartzJobBean {
 
         CustomLogger.initializeThreadContext(jobId, JOB_NAME, instanceId, "Executed", LOG_FILENAME, null);
         LOG.info("Job completed successfully");
+    }
+
+    private char getJobDeletionStatus(String jobName, String jobGroup) {
+        System.out.println("BatchJob.getJobDeletionStatus");
+        JobUtils jobUtils = new JobUtils(dataSource);
+        return jobUtils.getJobDeletionStatus(jobName, jobGroup);
     }
 }

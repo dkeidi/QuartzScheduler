@@ -34,6 +34,10 @@ public class SchedulerService {
     public static Properties jobProperties;
     public static String generatedLogPath;
 
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
+
     public static void setAppProperties(Properties appProperties) {
         SchedulerService.appProperties = appProperties;
     }

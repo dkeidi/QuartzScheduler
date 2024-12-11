@@ -2,6 +2,7 @@ package com.quartz;
 
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
+import com.quartz.listener.SoftDeleteJobListener;
 import com.quartz.services.SchedulerService;
 import com.quartz.util.PropertiesLoader;
 import com.quartz.util.Log4j2XmlGenerator;
@@ -17,9 +18,11 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.quartz.QuartzDataSource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,11 +42,13 @@ public class QuartzSchedulerApplication {
     public static Properties jobProperties;
     public static Properties appProperties;
     public static String log4jConfigFilePath;
+    private DataSource dataSource;
 
     @Autowired
 
-    public QuartzSchedulerApplication(SchedulerService scheduler) {
+    public QuartzSchedulerApplication(SchedulerService scheduler, @QuartzDataSource DataSource dataSource) {
         QuartzSchedulerApplication.scheduler = scheduler;
+//        this.dataSource = dataSource;
     }
 
     public static void main(String[] args) throws SchedulerException, IOException {
@@ -203,10 +208,13 @@ public class QuartzSchedulerApplication {
                 }
             }
             LOG.info("Scheduled all jobs.");
-            LOG.info("Paused all jobs.");
-
-            scheduler.pauseAllJobs();
+//            LOG.info("Paused all jobs.");
+//
+//            scheduler.pauseAllJobs();
             scheduler.getScheduledJobs();
+
+//            scheduler.getScheduler().getListenerManager().addJobListener(new SoftDeleteJobListener(dataSource));
+
         } catch (IOException | SchedulerException ex) {
             LOG.error("Error scheduling jobs", ex);
         }
