@@ -167,9 +167,9 @@ public class QuartzSchedulerApplication {
 
             // .run has to come after Configurator for LOG4J2 to work
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
-//            LoggerContext context = (LoggerContext) LogManager.getContext(false);
-//            Configuration config = context.getConfiguration();
-//            _xmlDebug(context, config);
+            LoggerContext context = (LoggerContext) LogManager.getContext(false);
+            Configuration config = context.getConfiguration();
+            _xmlDebug(context, config);
 
         } catch (IOException e) {
             LOG.debug(e);

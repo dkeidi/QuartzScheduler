@@ -452,7 +452,7 @@ public class SchedulerService {
         // Reload the Log4j2 configuration
         reloadLog4jConfiguration(generatedLogPath);
 
-//        _xmlDebug(config);
+        _xmlDebug(config);
     }
 
     public static void reloadLog4jConfiguration(String configFilePath) {

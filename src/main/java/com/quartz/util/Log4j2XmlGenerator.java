@@ -208,7 +208,7 @@ public class Log4j2XmlGenerator {
     }
 
     private static void appendLoggerBlock(StringBuilder section, String jobName, String level, List<String> appenderRefs, String jobPrefix) {
-        section.append("        <Logger name=\"").append(jobPrefix).append(jobName).append("\" level=\"").append(level).append("\" additivity=\"false\">\n");
+        section.append("        <Logger name=\"").append(jobPrefix).append(".").append(jobName).append("\" level=\"").append(level).append("\" additivity=\"false\">\n");
         for (String appenderRef : appenderRefs) {
             section.append("            <AppenderRef ref=\"").append(appenderRef).append("\"/>\n");
         }
