@@ -21,18 +21,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+//	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 //	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.springframework.boot:spring-boot-starter-jdbc:2.4.1'
-//	implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
-//	implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
-//	implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
 	implementation files('C:\\Program Files\\Microsoft JDBC DRIVER 12.6 for SQL Server\\sqljdbc_12.6\\enu\\jars\\mssql-jdbc-12.6.3.jre11.jar')
-//	implementation 'javax.xml.bind:jaxb-api:2.3.1'
-//	implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
-//	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -49,6 +42,13 @@ tasks.register('copyFilesToLibs', Copy) {
 }
 
 build.dependsOn copyFilesToLibs
+
+tasks.register('copyFilesToMyQuartzTest', Copy) {
+	from 'build/libs'
+	include '**/*SNAPSHOT.jar', '**/application.properties'
+	into 'C:/Users/keidi.tay.chuan/Documents/MyQuartzTest'
+	includeEmptyDirs = false // Avoid creating empty directories in the destination
+}
 
 configurations {
 	configureEach {

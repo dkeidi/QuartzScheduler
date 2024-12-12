@@ -2,11 +2,10 @@ package com.quartz;
 
 import com.quartz.info.TriggerInfo;
 import com.quartz.jobs.BatchJob;
-import com.quartz.jobs.CopyJob;
-import com.quartz.jobs.HelloWorldJob;
 import com.quartz.services.SchedulerService;
-import com.quartz.util.PropertiesLoader;
+import com.quartz.tests.JobExceptionExample;
 import com.quartz.util.Log4j2XmlGenerator;
+import com.quartz.util.PropertiesLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
@@ -28,7 +27,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Properties;
 
 @SpringBootApplication
@@ -43,7 +41,9 @@ public class QuartzSchedulerApplication {
 
     @Autowired
 
-    public QuartzSchedulerApplication(SchedulerService scheduler) {QuartzSchedulerApplication.scheduler = scheduler;}
+    public QuartzSchedulerApplication(SchedulerService scheduler) {
+        QuartzSchedulerApplication.scheduler = scheduler;
+    }
 
     public static void main(String[] args) throws SchedulerException, IOException {
         loadProperties();
@@ -129,16 +129,22 @@ public class QuartzSchedulerApplication {
 //        scheduler.schedule(jobDetail, info1);
 
 
-        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
-                .withIdentity("CopyJob")
-                .build();
-
-        TriggerInfo info2 = new TriggerInfo();
-        info2.setCronExp("0 51 16 * * ?");
-        info2.setCallbackData("CopyJob");
-        info2.setJobName("CopyJob");
-
-        scheduler.schedule(jobDetail, info2);
+//        JobDetail jobDetail = JobBuilder.newJob(CopyJob.class)
+//                .withIdentity("CopyJob")
+//                .build();
+//
+//        TriggerInfo info2 = new TriggerInfo();
+//        info2.setCronExp("0 51 16 * * ?");
+//        info2.setCallbackData("CopyJob");
+//        info2.setJobName("CopyJob");
+//
+//        scheduler.schedule(jobDetail, info2);
+        JobExceptionExample example = new JobExceptionExample();
+        try {
+            example.run();
+        } catch (Exception e) {
+            LOG.error(e);
+        }
     }
 
     private static void _jobsFromExternalProperties(String[] args) {
