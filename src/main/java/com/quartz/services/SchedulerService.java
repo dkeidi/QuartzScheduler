@@ -254,12 +254,10 @@ public class SchedulerService {
             boolean isPaused = _isJobPaused(jobKey);
 
             if (isPaused) {
-                LOG.info("success");
-                LOG.info("Job '" + jobKey + "' has been paused successfully.");
+                LOG.info("Job '{}' has been paused successfully.", jobKey);
                 return true;
             } else {
-                LOG.info("failed");
-                LOG.info("Job '" + jobKey + "' could not be paused. It may not exist or is already paused.");
+                LOG.info("Job '{}' could not be paused. It may not exist or is already paused.", jobKey);
                 return false;
             }
         } catch (SchedulerException e) {
@@ -290,12 +288,10 @@ public class SchedulerService {
             boolean isResumed = _isJobResumed(jobKey);
 
             if (isResumed) {
-                LOG.info("success");
-                LOG.info("Job '" + jobKey + "' has been resumed successfully.");
+                LOG.info("Job '{}' has been resumed successfully.", jobKey);
                 return true;
             } else {
-                LOG.info("failed");
-                LOG.info("Job '" + jobKey + "' could not be resumed. It may not exist or is already resumed.");
+                LOG.info("Job '{}' could not be resumed. It may not exist or is already resumed.", jobKey);
                 return false;
             }
         } catch (SchedulerException e) {
@@ -452,7 +448,9 @@ public class SchedulerService {
         // Reload the Log4j2 configuration
         reloadLog4jConfiguration(generatedLogPath);
 
-        _xmlDebug(config);
+        if (appProperties.get("app.root") == "debug") {
+            _xmlDebug(config);
+        }
     }
 
     public static void reloadLog4jConfiguration(String configFilePath) {

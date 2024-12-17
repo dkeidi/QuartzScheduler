@@ -42,7 +42,6 @@ public class QuartzSchedulerApplication {
     public static String log4jConfigFilePath;
 
     @Autowired
-
     public QuartzSchedulerApplication(SchedulerService scheduler) {
         QuartzSchedulerApplication.scheduler = scheduler;
     }
@@ -75,11 +74,10 @@ public class QuartzSchedulerApplication {
         SchedulerService.setJobProperties(jobProperties);
         SchedulerService.setGeneratedLogPath(log4jConfigFilePath);
 //        System.out.println("end loadProperties");
-
     }
 
     public static String getJarDir() {
-//        System.out.println("getJarDir");
+        System.out.println("getJarDir");
         try {
             // Retrieve the path as a URL and convert it to a URI
             URI uri = QuartzSchedulerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -160,6 +158,7 @@ public class QuartzSchedulerApplication {
             System.setProperty("log4j.configurationFile", log4jConfigFilePath);
             System.setProperty("log4j2.debug", "true");
 
+//            System.out.println(log4jConfigFilePath);
             ConfigurationSource source = new ConfigurationSource(new FileInputStream(log4jConfigFilePath));
             Configurator.initialize(null, source);
 
@@ -169,7 +168,10 @@ public class QuartzSchedulerApplication {
             SpringApplication.run(QuartzSchedulerApplication.class, args).getBean(QuartzSchedulerApplication.class)._scheduleJobsFromProperties(scheduler);
             LoggerContext context = (LoggerContext) LogManager.getContext(false);
             Configuration config = context.getConfiguration();
-            _xmlDebug(context, config);
+
+            if (appProperties.get("app.root") == "debug") {
+                _xmlDebug(context, config);
+            }
 
         } catch (IOException e) {
             LOG.debug(e);
