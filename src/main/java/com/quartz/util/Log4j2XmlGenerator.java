@@ -67,7 +67,6 @@ public class Log4j2XmlGenerator {
 
     private static String generateJDBCJobAppender(String consolePattern, Properties jobProperties, String jobLogLevel, String rootLogLevel, String jobPrefix, String rollingFilePattern) {
         StringBuilder jdbcSection = new StringBuilder();
-        StringBuilder rootAppenderRefs = new StringBuilder();
 
         // Appenders Section
         jdbcSection.append("    <Appenders>\n")
@@ -128,10 +127,9 @@ public class Log4j2XmlGenerator {
                                 "LogDetailToDB"
                         ),
                         jobPrefix);
-                rootAppenderRefs.append("            <AppenderRef ref=\"Log").append(jobName).append("ToFile\"/>\n");
             }
         }
-        appendRootSection(jdbcSection, rootLogLevel, "            <AppenderRef ref=\"LogToFile\"/>\n" + rootAppenderRefs);
+        appendRootSection(jdbcSection, rootLogLevel);
         return jdbcSection.toString();
     }
 
@@ -160,7 +158,7 @@ public class Log4j2XmlGenerator {
                 ), jobPrefix);
             }
         }
-        appendRootSection(ramSection, rootLogLevel, "            <AppenderRef ref=\"LogToFile\"/>\n");
+        appendRootSection(ramSection, rootLogLevel);
         return ramSection.toString();
     }
 
@@ -215,9 +213,9 @@ public class Log4j2XmlGenerator {
         section.append("        </Logger>\n");
     }
 
-    private static void appendRootSection(StringBuilder section, String level, String rootAppenderRefs) {
+    private static void appendRootSection(StringBuilder section, String level) {
         section.append("        <Root level=\"").append(level).append("\">\n")
-                .append(rootAppenderRefs)
+                .append("            <AppenderRef ref=\"LogToFile\"/>\n")
                 .append("            <AppenderRef ref=\"LogToConsole\"/>\n")
                 .append("        </Root>\n")
                 .append("    </Loggers>\n")
